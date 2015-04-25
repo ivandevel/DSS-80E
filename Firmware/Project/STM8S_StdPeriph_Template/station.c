@@ -134,14 +134,14 @@ void Soldering_Main(void)
 			if (state != 0) {
                           StbyMode = MODE_WORKING;
                           
-                          display_setpoint = 15;
+                          display_setpoint = 5;
                           
 				if (state == RIGHT_SPIN) {
-					//Setpoint+=5;
+					Setpoint+=5;
                                         if (Setpoint >= 450) Setpoint = 450;
 				}
 				if (state == LEFT_SPIN) {
-                                        //Setpoint-=5;
+                                        Setpoint-=5;
                                         if (Setpoint <= 150) Setpoint = 150;
 				}
 			}

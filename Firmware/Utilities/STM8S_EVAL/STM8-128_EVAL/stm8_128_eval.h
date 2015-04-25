@@ -53,7 +53,7 @@
 
 #define LEDn                        8
 #define LED_A_GPIO_PORT              GPIOA
-#define LED_A_GPIO_PIN               GPIO_PIN_1
+#define LED_A_GPIO_PIN               GPIO_PIN_2
 
 #define LED_B_GPIO_PORT              GPIOC
 #define LED_B_GPIO_PIN               GPIO_PIN_4
@@ -67,8 +67,8 @@
 #define LED_E_GPIO_PORT              GPIOC
 #define LED_E_GPIO_PIN               GPIO_PIN_6
     
-#define LED_F_GPIO_PORT              GPIOC
-#define LED_F_GPIO_PIN               GPIO_PIN_3
+#define LED_F_GPIO_PORT              GPIOA
+#define LED_F_GPIO_PIN               GPIO_PIN_1
     
 #define LED_G_GPIO_PORT              GPIOD
 #define LED_G_GPIO_PIN               GPIO_PIN_4
@@ -76,14 +76,14 @@
 #define LED_H_GPIO_PORT              GPIOD
 #define LED_H_GPIO_PIN               GPIO_PIN_6
 
-#define SEG1_GPIO_PORT              GPIOA
-#define SEG1_GPIO_PIN               GPIO_PIN_2
+#define SEG1_GPIO_PORT               GPIOA
+#define SEG1_GPIO_PIN                GPIO_PIN_3
     
-#define SEG2_GPIO_PORT              GPIOA
-#define SEG2_GPIO_PIN               GPIO_PIN_3
+#define SEG2_GPIO_PORT               GPIOC
+#define SEG2_GPIO_PIN                GPIO_PIN_3
     
-#define SEG3_GPIO_PORT              GPIOC
-#define SEG3_GPIO_PIN               GPIO_PIN_7    
+#define SEG3_GPIO_PORT               GPIOC
+#define SEG3_GPIO_PIN                GPIO_PIN_7    
 /**
   * @}
   */
