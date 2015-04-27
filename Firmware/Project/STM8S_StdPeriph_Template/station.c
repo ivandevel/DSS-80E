@@ -102,11 +102,11 @@ ADC1_Init(
 void Soldering_Main(void)
 {
   //Вытаскиваем значение уставки из EEPROM
-  Setpoint = 300;//eeSetpoint;
+  Setpoint = eeSetpoint;
   
-  pid_s.KP = 8; //8
-  pid_s.KI = 22; //22
-  pid_s.KD = 10; //4
+  pid_s.KP = 20; //8
+  pid_s.KI = 40; //22
+  pid_s.KD = 2; //4
   pid_s.KT = 32; //30
 
   //kalman_init();
