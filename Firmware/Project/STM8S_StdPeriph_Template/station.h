@@ -7,6 +7,9 @@
 #define MODE_STANDBY 1
 #define MEASURING_INTERVAL_TICKS 50
 #define N_MEASUREMENTS_OF_TEMPERATURE 8
+
+#define DISPLAY_SETPOINT_TIMEOUT 750
+
 void Soldering_TIM2_Config(void);
 void Soldering_ADC_Config(void);
 void Soldering_Main(void);

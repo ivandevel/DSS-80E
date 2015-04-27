@@ -25,7 +25,7 @@ for (x = 0; x < 12; x+=2)
    return vArray[x+1] + (int16_t)((int32_t)(vArray[x+3] - vArray[x+1]) * (int32_t)(Vread - vArray[x]) / (int32_t)(vArray[x+2] - vArray[x]));  
  }
 }
-return 0;
+return 777;
 }
 
 int16_t Code2uV(int16_t adccode)

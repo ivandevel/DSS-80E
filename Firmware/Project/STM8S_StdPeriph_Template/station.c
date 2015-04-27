@@ -12,7 +12,7 @@ __no_init volatile uint16_t eeSetpoint;
 uint8_t prediv = 0;
 uint32_t tempaccum;
 uint16_t timedivider;
-static uint8_t display_setpoint=15;
+static uint16_t display_setpoint=DISPLAY_SETPOINT_TIMEOUT;
 uint16_t Temperature = 0;
 uint16_t temp_prev, temp_curr = 0;
 extern uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
@@ -108,7 +108,7 @@ void Soldering_Main(void)
   pid_s.KI = 22; //22
   pid_s.KD = 10; //4
   pid_s.KT = 32; //30
-  
+
   //kalman_init();
   
   while(1) 
@@ -134,7 +134,7 @@ void Soldering_Main(void)
 			if (state != 0) {
                           StbyMode = MODE_WORKING;
                           
-                          display_setpoint = 5;
+                          display_setpoint = DISPLAY_SETPOINT_TIMEOUT;
                           
 				if (state == RIGHT_SPIN) {
 					Setpoint+=5;
@@ -220,21 +220,8 @@ void Soldering_ISR (void)
      GPIO_WriteHigh(GPIOD, GPIO_PIN_2);
    }
   
-    
-     if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
-        
-     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));
-     
-     //temp_curr = (950*temp_curr)/1000 + ((1000-950)*temp_prev)/1000;
-     
-     //temp_prev = temp_curr;
-     
-     //Temperature = temp_curr;
-     
-     //msTick = 0;
-     
-     //Если задано время на отображение уставки
-    if (display_setpoint)
+  
+  if (display_setpoint)
     {
       display_setpoint--;
       //Уставку - на экран
@@ -253,7 +240,11 @@ void Soldering_ISR (void)
      switch(StbyMode)
       {
       case MODE_WORKING:
+        
+      if ((Temperature > 450) &&  !display_setpoint) ssegWriteStr("---", 3, SEG1); 
+        else
       ssegWriteInt(*lcddata);
+      
       Power = pid(Setpoint, Temperature, &pid_s);
       
       break;
@@ -269,6 +260,55 @@ void Soldering_ISR (void)
       break; 
       
       }
+    
+     if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
+        
+     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));
+     
+     //temp_curr = (950*temp_curr)/1000 + ((1000-950)*temp_prev)/1000;
+     
+     //temp_prev = temp_curr;
+     
+     //Temperature = temp_curr;
+     
+     //msTick = 0;
+     
+     //Если задано время на отображение уставки
+//    if (display_setpoint)
+//    {
+//      display_setpoint--;
+//      //Уставку - на экран
+//      lcddata = &Setpoint;
+//      //Если кончилось время отображения значения уставки
+//      if (!display_setpoint) {
+//        //Температуру - на экран
+//        lcddata = &Temperature;
+//        //lcddata = &Power;
+//        eeSetpoint = Setpoint;
+//      }
+//    }
+//    
+//    ssegWriteStr("   ", 3, SEG1);
+//
+//     switch(StbyMode)
+//      {
+//      case MODE_WORKING:
+//      ssegWriteInt(*lcddata);
+//      Power = pid(Setpoint, Temperature, &pid_s);
+//      
+//      break;
+//      case MODE_STANDBY:
+//      ssegWriteStr("Stb", 3, SEG1);
+//      Power = pid(Setpoint/2, Temperature, &pid_s);
+//      break;
+//      
+//      case MODE_POWEROFF:
+//      ssegWriteStr("OFF", 3, SEG1);
+//      GPIO_WriteLow(GPIOD, GPIO_PIN_2);
+//      Power = 0;
+//      break; 
+//      
+//      }
      
      
      tempaccum = 0;
