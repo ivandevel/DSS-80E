@@ -93,27 +93,27 @@ void vButtonPostEvent(Button_TypeDef button, eButtonEvent_t event) {
 
 void vButtonHandler(Button_TypeDef button) {
 	#if BUTTON_INDICATION_ENABLED
-	switch (eButtonEvent[Button_LEFT]) {
+	switch (eButtonEvent[BUTTON_KEY]) {
 	case eButtonEventNone:
-		ssegWriteStr(" ", 1, SEG7);
+		ssegWriteStr(" ", 1, SEG2);
 		break;
 	case eButtonEventPress:
-		ssegWriteStr("P", 1, SEG7);
+		ssegWriteStr("P", 1, SEG2);
 		break;
 	case eButtonEventHold:
-		ssegWriteStr("H", 1, SEG7);
+		ssegWriteStr("H", 1, SEG2);
 		break;
 	}
 
-	switch (eButtonEvent[Button_RIGHT]) {
+	switch (eButtonEvent[BUTTON_KEY]) {
 	case eButtonEventNone:
-		ssegWriteStr(" ", 1, SEG9);
+		ssegWriteStr(" ", 1, SEG1);
 		break;
 	case eButtonEventPress:
-		ssegWriteStr("P", 1, SEG9);
+		ssegWriteStr("P", 1, SEG1);
 		break;
 	case eButtonEventHold:
-		ssegWriteStr("H", 1, SEG9);
+		ssegWriteStr("H", 1, SEG1);
 		break;
 	}
 	#endif

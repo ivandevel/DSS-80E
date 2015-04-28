@@ -26,7 +26,7 @@
 #include "main.h"    
 #include "7-seg.h" 
 #include "station.h" 
-    
+ #include "button.h"    
 /** @addtogroup Template_Project
   * @{
   */
@@ -468,6 +468,10 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
   
+   ENC_PollEncoder();
+
+   vButtonHandler(BUTTON_KEY); 
+   
    Soldering_ISR();
    
    TIM4_ClearITPendingBit(TIM4_IT_UPDATE);

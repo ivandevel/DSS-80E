@@ -105,7 +105,7 @@ void Soldering_Main(void)
   Setpoint = eeSetpoint;
   
   pid_s.KP = 20; //8
-  pid_s.KI = 40; //22
+  pid_s.KI = 22; //22
   pid_s.KD = 2; //4
   pid_s.KT = 32; //30
 
@@ -113,7 +113,7 @@ void Soldering_Main(void)
   
   while(1) 
   {
-  if ((eButtonGetEvent(BUTTON_KEY) == eButtonEventPress)) {
+  if ((eButtonGetEvent(BUTTON_KEY) == eButtonEventHold)) {
       switch(StbyMode)
       {
       case MODE_WORKING:
@@ -133,6 +133,7 @@ void Soldering_Main(void)
 
 			if (state != 0) {
                           StbyMode = MODE_WORKING;
+                          SecondTick = 0;
                           
                           display_setpoint = DISPLAY_SETPOINT_TIMEOUT;
                           
@@ -178,15 +179,13 @@ void Soldering_ISR (void)
      it is recommended to set a breakpoint on the following instruction.
   */
 
-   ENC_PollEncoder();
 
-   vButtonHandler(BUTTON_KEY); 
 
    timedivider++;
   
    if ((StbyMode == MODE_WORKING) || (StbyMode == MODE_STANDBY)) SecondTick++;
 
-  if (SecondTick == 5 * 60000UL) // 15 minutes
+  if (SecondTick ==  5 * 60000UL) // 15 minutes
    {
      StbyMode = MODE_STANDBY;
      //SecondTick = 0;
@@ -243,20 +242,18 @@ void Soldering_ISR (void)
         
       if ((Temperature > 450) &&  !display_setpoint) ssegWriteStr("---", 3, SEG1); 
         else
-      ssegWriteInt(*lcddata);
-      
-      Power = pid(Setpoint, Temperature, &pid_s);
+      ssegWriteInt(*lcddata);      
+      //Power = pid(Setpoint, Temperature, &pid_s);
       
       break;
       case MODE_STANDBY:
       ssegWriteStr("Stb", 3, SEG1);
-      Power = pid(Setpoint/2, Temperature, &pid_s);
-      break;
-      
+      //Power = pid(Setpoint/2, Temperature, &pid_s);
+      break;     
       case MODE_POWEROFF:
       ssegWriteStr("OFF", 3, SEG1);
-      GPIO_WriteLow(GPIOD, GPIO_PIN_2);
-      Power = 0;
+      //GPIO_WriteLow(GPIOD, GPIO_PIN_2);
+      //Power = 0;
       break; 
       
       }
@@ -264,6 +261,23 @@ void Soldering_ISR (void)
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
      Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));
+     
+     
+      switch(StbyMode)
+      {
+      case MODE_WORKING:    
+      Power = pid(Setpoint, Temperature, &pid_s);
+      break;
+      case MODE_STANDBY:
+      Power = pid(Setpoint/2, Temperature, &pid_s);
+      break;
+      case MODE_POWEROFF:
+      GPIO_WriteLow(GPIOD, GPIO_PIN_2);
+      Power = 0;
+      break; 
+      
+      }
+     
      
      //temp_curr = (950*temp_curr)/1000 + ((1000-950)*temp_prev)/1000;
      
