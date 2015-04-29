@@ -926,6 +926,9 @@
       <name>$PROJ_DIR$\..\button.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\Control.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\main.c</name>
     </file>
     <file>

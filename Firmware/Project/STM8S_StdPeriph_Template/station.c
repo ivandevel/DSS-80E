@@ -5,6 +5,7 @@
 #include "7-seg.h"
 #include "button.h"
 #include "thermo.h"
+#include "control.h"
 
 #pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS 
 __no_init volatile uint16_t eeSetpoint;
@@ -97,19 +98,24 @@ ADC1_Init(
 
   ADC1_Cmd(ENABLE);
 }
-  
 
 void Soldering_Main(void)
 {
+  Control_Init();
+  
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
   
-  pid_s.KP = 20; //8
+  Control_SetT(Setpoint*10);
+  
+  pid_s.KP = 8; //8
   pid_s.KI = 22; //22
-  pid_s.KD = 2; //4
-  pid_s.KT = 32; //30
+  pid_s.KD = 4; //4
+  pid_s.KT = 30; //30
 
   //kalman_init();
+  
+  
   
   while(1) 
   {
@@ -140,10 +146,12 @@ void Soldering_Main(void)
 				if (state == RIGHT_SPIN) {
 					Setpoint+=5;
                                         if (Setpoint >= 450) Setpoint = 450;
+                                        Control_SetT(Setpoint*10); 
 				}
 				if (state == LEFT_SPIN) {
                                         Setpoint-=5;
                                         if (Setpoint <= 150) Setpoint = 150;
+                                        Control_SetT(Setpoint*10); 
 				}
 			}
     
@@ -178,8 +186,6 @@ void Soldering_ISR (void)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-
-
 
    timedivider++;
   
@@ -219,7 +225,6 @@ void Soldering_ISR (void)
      GPIO_WriteHigh(GPIOD, GPIO_PIN_2);
    }
   
-  
   if (display_setpoint)
     {
       display_setpoint--;
@@ -238,92 +243,45 @@ void Soldering_ISR (void)
 
      switch(StbyMode)
       {
-      case MODE_WORKING:
-        
+      case MODE_WORKING:       
       if ((Temperature > 450) &&  !display_setpoint) ssegWriteStr("---", 3, SEG1); 
         else
-      ssegWriteInt(*lcddata);      
-      //Power = pid(Setpoint, Temperature, &pid_s);
-      
+      ssegWriteInt(*lcddata);       
       break;
       case MODE_STANDBY:
       ssegWriteStr("Stb", 3, SEG1);
-      //Power = pid(Setpoint/2, Temperature, &pid_s);
       break;     
       case MODE_POWEROFF:
       ssegWriteStr("OFF", 3, SEG1);
-      //GPIO_WriteLow(GPIOD, GPIO_PIN_2);
-      //Power = 0;
       break; 
-      
       }
     
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
      Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));
-     
-     
+
       switch(StbyMode)
       {
       case MODE_WORKING:    
-      Power = pid(Setpoint, Temperature, &pid_s);
+      //Power = pid(Setpoint, Temperature, &pid_s);
+      Control_SetT(Setpoint*10);
+        Control_SetTc(Temperature*10);
+      //Power = Control_GetP();
       break;
       case MODE_STANDBY:
-      Power = pid(Setpoint/2, Temperature, &pid_s);
+      Control_SetT((Setpoint*10)/2);
+        //Power = pid(Setpoint/2, Temperature, &pid_s);
+      Control_SetTc(Temperature*10);
       break;
       case MODE_POWEROFF:
       GPIO_WriteLow(GPIOD, GPIO_PIN_2);
       Power = 0;
-      break; 
-      
-      }
+      break;      
+      }  
+
+     Control_Exe();
      
-     
-     //temp_curr = (950*temp_curr)/1000 + ((1000-950)*temp_prev)/1000;
-     
-     //temp_prev = temp_curr;
-     
-     //Temperature = temp_curr;
-     
-     //msTick = 0;
-     
-     //Если задано время на отображение уставки
-//    if (display_setpoint)
-//    {
-//      display_setpoint--;
-//      //Уставку - на экран
-//      lcddata = &Setpoint;
-//      //Если кончилось время отображения значения уставки
-//      if (!display_setpoint) {
-//        //Температуру - на экран
-//        lcddata = &Temperature;
-//        //lcddata = &Power;
-//        eeSetpoint = Setpoint;
-//      }
-//    }
-//    
-//    ssegWriteStr("   ", 3, SEG1);
-//
-//     switch(StbyMode)
-//      {
-//      case MODE_WORKING:
-//      ssegWriteInt(*lcddata);
-//      Power = pid(Setpoint, Temperature, &pid_s);
-//      
-//      break;
-//      case MODE_STANDBY:
-//      ssegWriteStr("Stb", 3, SEG1);
-//      Power = pid(Setpoint/2, Temperature, &pid_s);
-//      break;
-//      
-//      case MODE_POWEROFF:
-//      ssegWriteStr("OFF", 3, SEG1);
-//      GPIO_WriteLow(GPIOD, GPIO_PIN_2);
-//      Power = 0;
-//      break; 
-//      
-//      }
-     
+     Power = Control_GetP();
      
      tempaccum = 0;
      tempcount = 0;

@@ -43,9 +43,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\Libraries\STM8S_StdPeriph_Driver\src\stm8s_gpio.c</name>
-      <configuration>
-        <name>SolderStation</name>
-      </configuration>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\Libraries\STM8S_StdPeriph_Driver\src\stm8s_i2c.c</name>
@@ -100,6 +97,12 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\button.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\control.c</name>
+      <configuration>
+        <name>SolderStation</name>
+      </configuration>
     </file>
     <file>
       <name>$PROJ_DIR$\..\main.c</name>
