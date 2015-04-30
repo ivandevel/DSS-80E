@@ -85,15 +85,15 @@ static int  OptErHvT;     //скорость изменения температуры для ErH
 
  //int  ECSign;    //сигнатура EEPROM
 char EPidH_Kp;  //Kp PIDH в EEPROM
- char EPidH_Ki;  //Ki PIDH в EEPROM
- char EPidH_Kd;  //Kd PIDH в EEPROM
- //int  EPlim;     //Plim в EEPROM
- char EOptErHen; //разрешение ErH в EEPROM
- char EOptErOen; //разрешение ErO в EEPROM
- char EOptErSen; //разрешение ErS в EEPROM
- int  EOptErHTm; //задержка для ErH в EEPROM
- int  EOptErHdT; //ошибка температуры для ErH в EEPROM
- int  EOptErHvT; //скорость изм. темп. для ErH в EEPROM
+char EPidH_Ki;  //Ki PIDH в EEPROM
+char EPidH_Kd;  //Kd PIDH в EEPROM
+//int  EPlim;     //Plim в EEPROM
+char EOptErHen; //разрешение ErH в EEPROM
+char EOptErOen; //разрешение ErO в EEPROM
+char EOptErSen; //разрешение ErS в EEPROM
+int  EOptErHTm; //задержка для ErH в EEPROM
+int  EOptErHdT; //ошибка температуры для ErH в EEPROM
+int  EOptErHvT; //скорость изм. темп. для ErH в EEPROM
 
 
 //-------------------------- Прототипы функций: ------------------------------

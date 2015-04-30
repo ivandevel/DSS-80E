@@ -106,17 +106,15 @@ void Soldering_Main(void)
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
   
-  Control_SetT(Setpoint*10);
+  Control_SetT(Setpoint);
   
-  pid_s.KP = 8; //8
-  pid_s.KI = 22; //22
-  pid_s.KD = 4; //4
-  pid_s.KT = 30; //30
-
+//  pid_s.KP = 8; //8
+//  pid_s.KI = 22; //22
+//  pid_s.KD = 4; //4
+//  pid_s.KT = 30; //30
+  
   //kalman_init();
-  
-  
-  
+
   while(1) 
   {
   if ((eButtonGetEvent(BUTTON_KEY) == eButtonEventHold)) {
@@ -146,12 +144,12 @@ void Soldering_Main(void)
 				if (state == RIGHT_SPIN) {
 					Setpoint+=5;
                                         if (Setpoint >= 450) Setpoint = 450;
-                                        Control_SetT(Setpoint*10); 
+                                        Control_SetT(Setpoint); 
 				}
 				if (state == LEFT_SPIN) {
                                         Setpoint-=5;
                                         if (Setpoint <= 150) Setpoint = 150;
-                                        Control_SetT(Setpoint*10); 
+                                        Control_SetT(Setpoint); 
 				}
 			}
     
@@ -264,14 +262,14 @@ void Soldering_ISR (void)
       {
       case MODE_WORKING:    
       //Power = pid(Setpoint, Temperature, &pid_s);
-      Control_SetT(Setpoint*10);
-        Control_SetTc(Temperature*10);
+      Control_SetT(Setpoint);
+        Control_SetTc(Temperature);
       //Power = Control_GetP();
       break;
       case MODE_STANDBY:
-      Control_SetT((Setpoint*10)/2);
+      Control_SetT(Setpoint/2);
         //Power = pid(Setpoint/2, Temperature, &pid_s);
-      Control_SetTc(Temperature*10);
+      Control_SetTc(Temperature);
       break;
       case MODE_POWEROFF:
       GPIO_WriteLow(GPIOD, GPIO_PIN_2);
