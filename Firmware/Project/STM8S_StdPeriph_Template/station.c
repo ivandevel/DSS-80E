@@ -189,13 +189,13 @@ void Soldering_ISR (void)
   
    if ((StbyMode == MODE_WORKING) || (StbyMode == MODE_STANDBY)) SecondTick++;
 
-  if (SecondTick ==  5 * 60000UL) // 15 minutes
+  if (SecondTick ==  5 * 60000UL) // 5 minutes
    {
      StbyMode = MODE_STANDBY;
      //SecondTick = 0;
    }     
     
-    if (SecondTick == 30 * 60000UL) // 15 minutes
+    if (SecondTick == 30 * 60000UL) // 30 minutes
    {
      StbyMode = MODE_POWEROFF;
      SecondTick = 0;
@@ -212,7 +212,7 @@ void Soldering_ISR (void)
    }
    
    
-   if (timedivider == 3) {
+   if (timedivider == 2) {
      tempaccum += GetAdcValue(ADC1_CHANNEL_4);
      //TIM2_SetCompare3(Power);
      tempcount++;
@@ -261,19 +261,16 @@ void Soldering_ISR (void)
       switch(StbyMode)
       {
       case MODE_WORKING:    
-      //Power = pid(Setpoint, Temperature, &pid_s);
       Control_SetT(Setpoint);
-        Control_SetTc(Temperature);
-      //Power = Control_GetP();
+      Control_SetTc(Temperature);
       break;
       case MODE_STANDBY:
       Control_SetT(Setpoint/2);
-        //Power = pid(Setpoint/2, Temperature, &pid_s);
       Control_SetTc(Temperature);
       break;
       case MODE_POWEROFF:
-      GPIO_WriteLow(GPIOD, GPIO_PIN_2);
-      Power = 0;
+      Control_SetT(0);
+      Control_SetTc(Temperature); 
       break;      
       }  
 
@@ -293,5 +290,4 @@ void Soldering_ISR (void)
     GPIO_WriteHigh(GPIOD, GPIO_PIN_3);
      
    }
-  // }
 }

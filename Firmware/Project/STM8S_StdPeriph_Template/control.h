@@ -20,7 +20,7 @@
 #define DELAY_MAX 30000  //максимальное значение задержек, мс
 
 #define POW_MIN 0
-#define POW_MAX 47
+#define POW_MAX 48
 // оды ошибок:
 enum
 {
