@@ -197,7 +197,7 @@ void Soldering_ISR (void)
      //SecondTick = 0;
    }     
     
-    if (SecondTick == 30 * 60000UL) // 30 minutes
+    if (SecondTick == 15 * 60000UL) // 30 minutes
    {
      StbyMode = MODE_POWEROFF;
      SecondTick = 0;
