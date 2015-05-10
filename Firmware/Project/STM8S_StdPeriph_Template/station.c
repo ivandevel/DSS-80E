@@ -20,7 +20,7 @@ extern uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
 static uint16_t Power = 0;  
 static uint32_t SecondTick = 0;
 pid_t pid_s;
-uint16_t Setpoint=100;
+uint16_t Setpoint=150;
 uint16_t *lcddata;
 uint8_t StbyMode=FALSE;
 
@@ -102,6 +102,8 @@ ADC1_Init(
 void Soldering_Main(void)
 {
   Control_Init();
+  
+  if ((eeSetpoint < 450) || (eeSetpoint < 150)) eeSetpoint = 150;
   
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
