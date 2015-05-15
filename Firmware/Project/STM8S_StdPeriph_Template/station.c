@@ -103,7 +103,7 @@ void Soldering_Main(void)
 {
   Control_Init();
   
-  if ((eeSetpoint < 450) || (eeSetpoint < 150)) eeSetpoint = 150;
+  if ((eeSetpoint > 450) || (eeSetpoint < 150)) eeSetpoint = 150;
   
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
