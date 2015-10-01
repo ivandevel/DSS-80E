@@ -1,17 +1,6 @@
 #include "stm8s.h"
 #include "thermo.h"
 
-static const int16_t vArray[20] = 
-{
-0, 35,  
-66, 50, 
-290, 100,  
-520, 150,
-970, 250,
-1400, 350,
-1800,  450
-};
-
 //#pragma optimize=none
 int16_t Convert(int16_t adc_code, int16_t tcj) 
 {

@@ -55,12 +55,12 @@
   */
 GPIO_TypeDef* LED_PORT[LEDn] =	{LED_A_GPIO_PORT, LED_B_GPIO_PORT, LED_C_GPIO_PORT,
 									 LED_D_GPIO_PORT, LED_E_GPIO_PORT, LED_F_GPIO_PORT,
-									 LED_G_GPIO_PORT, LED_H_GPIO_PORT
+									 LED_G_GPIO_PORT, /*LED_H_GPIO_PORT*/
 									 };
 
 const uint8_t LED_PIN[LEDn] = {LED_A_GPIO_PIN, LED_B_GPIO_PIN, LED_C_GPIO_PIN,
 									 LED_D_GPIO_PIN, LED_E_GPIO_PIN, LED_F_GPIO_PIN,
-									 LED_G_GPIO_PIN, LED_H_GPIO_PIN
+									 LED_G_GPIO_PIN, /*LED_H_GPIO_PIN*/
                                                                          };
 
 GPIO_TypeDef* SEG_PORT[LEDn] =	{SEG1_GPIO_PORT, SEG2_GPIO_PORT, SEG3_GPIO_PORT};

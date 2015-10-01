@@ -106,7 +106,7 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   
   //Soldering_TIM2_Config();
   
-  GPIO_Init(GPIOD, GPIO_PIN_2, GPIO_MODE_OUT_PP_LOW_FAST);
+  GPIO_Init(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN, GPIO_MODE_OUT_PP_LOW_FAST);
   
   Soldering_ADC_Config();  
   
@@ -120,8 +120,9 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   STM_EVAL_LEDInit(LEDE);
   STM_EVAL_LEDInit(LEDF);
   STM_EVAL_LEDInit(LEDG);
+#ifndef SOLDERING_VAR2
   STM_EVAL_LEDInit(LEDP);
-
+#endif
 //  STM_EVAL_SEGOn(SEG1);
 //  STM_EVAL_SEGOn(SEG2);
 //  STM_EVAL_SEGOn(SEG3);

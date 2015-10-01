@@ -83,7 +83,7 @@ void Soldering_TIM2_Config(void)
 void Soldering_ADC_Config (void)
 {
   /*  Init GPIO for ADC2 */
-  GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_IN_FL_NO_IT);
+  GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
   
   // Deinit ADC
 ADC1_DeInit();
@@ -206,23 +206,23 @@ void Soldering_ISR (void)
   
    if (timedivider == 1) {
      
-     GPIO_WriteLow(GPIOD, GPIO_PIN_3);
-     GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_IN_FL_NO_IT);
+     GPIO_WriteLow(ADC_GPIO_PORT, ADC_GPIO_PIN);
+     GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
      //TIM2_SetCompare3(0);
-     GPIO_WriteLow(GPIOD, GPIO_PIN_2);
+     GPIO_WriteLow(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN);
      ADC1_Cmd(ENABLE);
    }
    
    
    if (timedivider == 2) {
-     tempaccum += GetAdcValue(ADC1_CHANNEL_4);
+     tempaccum += GetAdcValue(ADC_SOLDER_TEMP_CHANNEL);
      //TIM2_SetCompare3(Power);
      tempcount++;
    }  
   
   
      if (timedivider == (MEASURING_INTERVAL_TICKS-Power+1)) {
-     GPIO_WriteHigh(GPIOD, GPIO_PIN_2);
+     GPIO_WriteHigh(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN);
    }
   
   if (display_setpoint)
@@ -288,8 +288,8 @@ void Soldering_ISR (void)
     if (timedivider == MEASURING_INTERVAL_TICKS) { //20
      timedivider = 0;
      ADC1_Cmd(DISABLE);
-    GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_OUT_PP_HIGH_FAST);
-    GPIO_WriteHigh(GPIOD, GPIO_PIN_3);
+    GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_FAST);
+    GPIO_WriteHigh(ADC_GPIO_PORT, ADC_GPIO_PIN);
      
    }
 }
