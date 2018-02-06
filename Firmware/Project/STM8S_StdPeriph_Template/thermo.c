@@ -7,7 +7,7 @@ int16_t Convert(int16_t adc_code, int16_t tcj)
 uint8_t x;
 uint16_t Vread = Code2uV(adc_code);
 
-for (x = 0; x < 12; x+=2)
+for (x = 0; x < 14; x+=2)
 {
  if (Vread >=vArray[x] && Vread <= vArray[x+2]) 
  {

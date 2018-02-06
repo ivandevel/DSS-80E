@@ -86,9 +86,9 @@ void Soldering_ADC_Config (void)
   GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
   
   // Deinit ADC
-ADC1_DeInit();
+  ADC1_DeInit();
   
-ADC1_Init(
+  ADC1_Init(
     ADC1_CONVERSIONMODE_CONTINUOUS,
     ADC1_CHANNEL_4,
     ADC1_PRESSEL_FCPU_D4,
@@ -191,13 +191,13 @@ void Soldering_ISR (void)
   
    if ((StbyMode == MODE_WORKING) || (StbyMode == MODE_STANDBY)) SecondTick++;
 
-  if (SecondTick ==  5 * 60000UL) // 5 minutes
+  if (SecondTick ==  STANDBY_TIME_MIN * 60000UL) // 5 minutes
    {
      StbyMode = MODE_STANDBY;
      //SecondTick = 0;
    }     
     
-    if (SecondTick == 15 * 60000UL) // 30 minutes
+    if (SecondTick == POWEROFF_TIME_MIN * 60000UL) // 30 minutes
    {
      StbyMode = MODE_POWEROFF;
      SecondTick = 0;
@@ -244,7 +244,8 @@ void Soldering_ISR (void)
      switch(StbyMode)
       {
       case MODE_WORKING:       
-      if ((Temperature > 450) &&  !display_setpoint) ssegWriteStr("---", 3, SEG1); 
+      if ((Temperature > 480) &&  !display_setpoint) 
+        ssegWriteStr("---", 3, SEG1); 
         else
       ssegWriteInt(*lcddata);       
       break;
