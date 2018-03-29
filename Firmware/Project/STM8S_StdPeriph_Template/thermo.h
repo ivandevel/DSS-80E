@@ -30,6 +30,32 @@ static const int16_t vArray[22] =
 2980,  480
 };
 
+#elif SOLDERING_HAKKO_A1321_MINI
+#define OPAMP_GAIN 1 //1.0
+static const int16_t vArray[22] = 
+{
+0, 35,  
+880, 50, 
+885, 100,  
+1020, 150,
+1420, 250,
+2250, 350,
+2780,  450,
+2980,  480
+};
+#elif SOLDERING_HAKKO_A1321
+#define OPAMP_GAIN 1 //1.0
+static const int16_t vArray[22] = 
+{
+0, 35,  
+880, 50, 
+885, 100,  
+1020, 150,
+1420, 250,
+2250, 350,
+2780,  450,
+2980,  480
+};
 #else
  #error "Please select first the STM8S SOLDERING board to be used (in stm8s_eval.h)"
 #endif

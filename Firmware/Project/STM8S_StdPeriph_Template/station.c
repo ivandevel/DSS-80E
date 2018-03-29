@@ -22,7 +22,7 @@ static uint32_t SecondTick = 0;
 pid_t pid_s;
 uint16_t Setpoint=150;
 uint16_t *lcddata;
-uint8_t StbyMode=FALSE;
+uint8_t StbyMode=MODE_WORKING;
 
 typedef struct {
 	int32_t q; //process noise covariance
@@ -116,10 +116,15 @@ void Soldering_Main(void)
 //  pid_s.KT = 30; //30
   
   //kalman_init();
+uint8_t now_button;
 
   while(1) 
   {
-  if ((eButtonGetEvent(BUTTON_KEY) == eButtonEventHold)) {
+/*
+    if (!STM_EVAL_PBGetState(BUTTON_UP) && now_button == 0)     
+    {
+      now_button = 1;
+      
       switch(StbyMode)
       {
       case MODE_WORKING:
@@ -130,11 +135,28 @@ void Soldering_Main(void)
         break;
       case MODE_POWEROFF:
         StbyMode = MODE_WORKING;
-        break;
+        break; 
       }
-      //if (StbyMode == MODE_WORKING) StbyMode = MODE_POWEROFF; else StbyMode = FALSE;
-    }
+    } else {
+      now_button = 0;
+    } */
     
+  if ((eButtonGetEvent(BUTTON_KEY) == eButtonEventPress)) {
+    
+      switch(StbyMode)
+      {
+      case MODE_WORKING:
+        StbyMode = MODE_POWEROFF;
+        break;
+      case MODE_STANDBY:        
+        StbyMode = MODE_WORKING;
+        break;
+      case MODE_POWEROFF:
+        StbyMode = MODE_WORKING;
+        break; 
+      }
+    }
+  
     uint8_t state = ENC_GetStateEncoder();
 
 			if (state != 0) {
@@ -244,8 +266,9 @@ void Soldering_ISR (void)
      switch(StbyMode)
       {
       case MODE_WORKING:       
-      if ((Temperature > 480) &&  !display_setpoint) 
+        if ((Temperature > 480) &&  !display_setpoint) {
         ssegWriteStr("---", 3, SEG1); 
+        }
         else
       ssegWriteInt(*lcddata);       
       break;
@@ -289,8 +312,8 @@ void Soldering_ISR (void)
     if (timedivider == MEASURING_INTERVAL_TICKS) { //20
      timedivider = 0;
      ADC1_Cmd(DISABLE);
-    GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_FAST);
-    GPIO_WriteHigh(ADC_GPIO_PORT, ADC_GPIO_PIN);
+     GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_FAST);
+     GPIO_WriteHigh(ADC_GPIO_PORT, ADC_GPIO_PIN);
      
    }
 }

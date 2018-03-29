@@ -122,6 +122,8 @@
 
 #elif SOLDERING_VAR2
 
+#define DIGIT_POLARITY_HIGH
+    
 #define LEDn                         7
 #define LED_A_GPIO_PORT              GPIOC
 #define LED_A_GPIO_PIN               GPIO_PIN_4
@@ -188,6 +190,154 @@
  * @brief EXTI push-button definition
  */
 #define KEY_BUTTON_EXTI_PORT       EXTI_PORT_GPIOA
+#define UP_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
+#define DN_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
+
+#elif SOLDERING_HAKKO_A1321_MINI
+
+#define DIGIT_POLARITY_LOW
+    
+#define LEDn                         7
+   
+#define LED_A_GPIO_PORT              GPIOA
+#define LED_A_GPIO_PIN               GPIO_PIN_1
+
+#define LED_B_GPIO_PORT              GPIOC
+#define LED_B_GPIO_PIN               GPIO_PIN_3
+    
+#define LED_C_GPIO_PORT              GPIOC
+#define LED_C_GPIO_PIN               GPIO_PIN_7
+    
+#define LED_D_GPIO_PORT              GPIOD
+#define LED_D_GPIO_PIN               GPIO_PIN_3
+    
+#define LED_E_GPIO_PORT              GPIOA
+#define LED_E_GPIO_PIN               GPIO_PIN_3
+    
+#define LED_F_GPIO_PORT              GPIOA
+#define LED_F_GPIO_PIN               GPIO_PIN_2
+    
+#define LED_G_GPIO_PORT              GPIOC
+#define LED_G_GPIO_PIN               GPIO_PIN_6
+    
+//#define LED_H_GPIO_PORT              GPIOD
+//#define LED_H_GPIO_PIN               GPIO_PIN_2
+
+#define SEG1_GPIO_PORT               GPIOD
+#define SEG1_GPIO_PIN                GPIO_PIN_6
+    
+#define SEG2_GPIO_PORT               GPIOC
+#define SEG2_GPIO_PIN                GPIO_PIN_5
+    
+#define SEG3_GPIO_PORT               GPIOC
+#define SEG3_GPIO_PIN                GPIO_PIN_4
+
+#define CONTROL_GPIO_PORT            GPIOD
+#define CONTROL_GPIO_PIN             GPIO_PIN_4
+
+#define ADC_GPIO_PORT                GPIOD
+#define ADC_GPIO_PIN                 GPIO_PIN_5
+
+#define ADC_SOLDER_TEMP_CHANNEL      ADC1_CHANNEL_5
+/**
+  * @}
+  */
+
+/** @addtogroup STM8_128_EVAL_LOW_LEVEL_BUTTON
+  * @{
+  */
+#define BUTTONn                     3
+
+/**
+ * @brief Key push-button
+ */
+#define ENC_KEY_BUTTON_PORT            GPIOD
+#define ENC_KEY_BUTTON_PIN             GPIO_PIN_1
+
+#define ENC_DN_BUTTON_PORT             GPIOB
+#define ENC_DN_BUTTON_PIN              GPIO_PIN_4
+
+#define ENC_UP_BUTTON_PORT             GPIOB
+#define ENC_UP_BUTTON_PIN              GPIO_PIN_5
+
+/**
+ * @brief EXTI push-button definition
+ */
+#define KEY_BUTTON_EXTI_PORT       EXTI_PORT_GPIOD
+#define UP_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
+#define DN_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
+
+#elif SOLDERING_HAKKO_A1321
+
+#define DIGIT_POLARITY_LOW
+    
+#define LEDn                         8
+   
+#define LED_A_GPIO_PORT              GPIOA
+#define LED_A_GPIO_PIN               GPIO_PIN_1
+
+#define LED_B_GPIO_PORT              GPIOC
+#define LED_B_GPIO_PIN               GPIO_PIN_4
+    
+#define LED_C_GPIO_PORT              GPIOD
+#define LED_C_GPIO_PIN               GPIO_PIN_5
+    
+#define LED_D_GPIO_PORT              GPIOC
+#define LED_D_GPIO_PIN               GPIO_PIN_5
+    
+#define LED_E_GPIO_PORT              GPIOC
+#define LED_E_GPIO_PIN               GPIO_PIN_6
+    
+#define LED_F_GPIO_PORT              GPIOC
+#define LED_F_GPIO_PIN               GPIO_PIN_3
+    
+#define LED_G_GPIO_PORT              GPIOD
+#define LED_G_GPIO_PIN               GPIO_PIN_4
+    
+#define LED_H_GPIO_PORT              GPIOD
+#define LED_H_GPIO_PIN               GPIO_PIN_6
+
+#define SEG1_GPIO_PORT               GPIOA
+#define SEG1_GPIO_PIN                GPIO_PIN_2
+    
+#define SEG2_GPIO_PORT               GPIOA
+#define SEG2_GPIO_PIN                GPIO_PIN_3
+    
+#define SEG3_GPIO_PORT               GPIOC
+#define SEG3_GPIO_PIN                GPIO_PIN_7
+
+#define CONTROL_GPIO_PORT            GPIOD
+#define CONTROL_GPIO_PIN             GPIO_PIN_2
+
+#define ADC_GPIO_PORT                GPIOD
+#define ADC_GPIO_PIN                 GPIO_PIN_3
+
+#define ADC_SOLDER_TEMP_CHANNEL      ADC1_CHANNEL_4
+/**
+  * @}
+  */
+
+/** @addtogroup STM8_128_EVAL_LOW_LEVEL_BUTTON
+  * @{
+  */
+#define BUTTONn                     3
+
+/**
+ * @brief Key push-button
+ */
+#define ENC_KEY_BUTTON_PORT            GPIOD
+#define ENC_KEY_BUTTON_PIN             GPIO_PIN_1
+
+#define ENC_DN_BUTTON_PORT             GPIOB
+#define ENC_DN_BUTTON_PIN              GPIO_PIN_4
+
+#define ENC_UP_BUTTON_PORT             GPIOB
+#define ENC_UP_BUTTON_PIN              GPIO_PIN_5
+
+/**
+ * @brief EXTI push-button definition
+ */
+#define KEY_BUTTON_EXTI_PORT       EXTI_PORT_GPIOD
 #define UP_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 #define DN_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 

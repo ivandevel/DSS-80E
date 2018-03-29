@@ -76,6 +76,8 @@ void FLASH_Config(void)
 
 void main(void)
 {
+  CFG->GCR |= 0x01; //disable swim pin
+  
   CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
   
     /* select Clock = 16 MHz */
@@ -121,33 +123,36 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   STM_EVAL_LEDInit(LEDF);
   STM_EVAL_LEDInit(LEDG);
 #ifndef SOLDERING_VAR2
-  STM_EVAL_LEDInit(LEDP);
+  //STM_EVAL_LEDInit(LEDP);
 #endif
-//  STM_EVAL_SEGOn(SEG1);
-//  STM_EVAL_SEGOn(SEG2);
-//  STM_EVAL_SEGOn(SEG3);
-////  
-//  STM_EVAL_LEDOff(LEDA);
-//  STM_EVAL_LEDOff(LEDB);
-//  STM_EVAL_LEDOff(LEDC);
-//  STM_EVAL_LEDOff(LEDD);
-//  STM_EVAL_LEDOff(LEDE);
-//  STM_EVAL_LEDOff(LEDF);
-//  STM_EVAL_LEDOff(LEDG);
-//  STM_EVAL_LEDOff(LEDP);
+  STM_EVAL_SEGOn(SEG1);
+  STM_EVAL_SEGOn(SEG2);
+  STM_EVAL_SEGOn(SEG3);
+  
+  STM_EVAL_LEDOn(LEDA);
+  STM_EVAL_LEDOn(LEDB);
+  STM_EVAL_LEDOn(LEDC);
+  STM_EVAL_LEDOn(LEDD);
+  STM_EVAL_LEDOn(LEDE);
+  STM_EVAL_LEDOn(LEDF);
+  STM_EVAL_LEDOn(LEDG);
+  
 //  
-//  STM_EVAL_SEGOff(SEG1);
-//  STM_EVAL_SEGOff(SEG2);
-//  STM_EVAL_SEGOff(SEG3);
-//  
-//  STM_EVAL_LEDOn(LEDA);
-//  STM_EVAL_LEDOn(LEDB);
-//  STM_EVAL_LEDOn(LEDC);
-//  STM_EVAL_LEDOn(LEDD);
-//  STM_EVAL_LEDOn(LEDE);
-//  STM_EVAL_LEDOn(LEDF);
-//  STM_EVAL_LEDOn(LEDG);
-//  STM_EVAL_LEDOn(LEDP);
+  STM_EVAL_LEDOff(LEDA);
+  STM_EVAL_LEDOff(LEDB);
+  STM_EVAL_LEDOff(LEDC);
+  STM_EVAL_LEDOff(LEDD);
+  STM_EVAL_LEDOff(LEDE);
+  STM_EVAL_LEDOff(LEDF);
+  STM_EVAL_LEDOff(LEDG);
+  //STM_EVAL_LEDOff(LEDP);
+  
+  STM_EVAL_SEGOff(SEG1);
+  STM_EVAL_SEGOff(SEG2);
+  STM_EVAL_SEGOff(SEG3);
+  
+  
+  //STM_EVAL_LEDOn(LEDP);
   
   STM_EVAL_PBInit(BUTTON_KEY, BUTTON_MODE_GPIO);
   STM_EVAL_PBInit(BUTTON_UP, BUTTON_MODE_GPIO);
@@ -160,6 +165,7 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   ssegSetBrightness(20);
   
   Soldering_Main(); 
+  while(1);
 }
 
 #ifdef USE_FULL_ASSERT

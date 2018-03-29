@@ -3,7 +3,7 @@
 #define __7_SEG_H__
 #include "stm8s_eval.h"
 
-#define DIGIT_POLARITY_HIGH
+
 
 /* Defines */
 

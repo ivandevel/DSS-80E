@@ -1,10 +1,11 @@
 #include "stm8s_eval.h"
 #include "button.h"
+#include "7-seg.h"
 
 /* Module defines */
-#define BUTTON_PRESS_THRESHOLD_MS	(uint16_t)(20)
-#define BUTTON_RELEASE_THRESHOLD_MS	(uint16_t)(20)
-#define BUTTON_HOLD_THRESHOLD_MS	(uint16_t)(2000)
+#define BUTTON_PRESS_THRESHOLD_MS	(uint16_t)(5)
+#define BUTTON_RELEASE_THRESHOLD_MS	(uint16_t)(5)
+#define BUTTON_HOLD_THRESHOLD_MS	(uint16_t)(100)
 #define BUTTON_INDICATION_ENABLED 0
 
 /* Module variables */
@@ -123,8 +124,9 @@ void vButtonHandler(Button_TypeDef button) {
 		if (usButtonPressTicks[button]) {
 			/* Button has been pressed previously */
 			usButtonReleaseTicks[button]++;
-
+                        //ssegWriteInt(usButtonReleaseTicks[button]);
 			if (usButtonReleaseTicks[button] >= BUTTON_RELEASE_THRESHOLD_MS) {
+                             
 				/* Button has been just released */
 				/* Checking how long the button has been pressed */
 				if ((usButtonPressTicks[button] >= BUTTON_PRESS_THRESHOLD_MS) &&

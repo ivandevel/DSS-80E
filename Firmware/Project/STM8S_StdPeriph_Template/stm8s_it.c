@@ -239,12 +239,8 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
     if (TIM1_GetITStatus(TIM1_IT_CC1) != RESET)
   {
-    /* Clear TIM2 Capture Compare1 interrupt pending bit*/
-    //TIM2_ClearITPendingBit(TIM2_IT_CC1);
-
-    /* PG.5 toggles after 1000 ms */
-    //GPIO_WriteLow(GPIOG, GPIO_PIN_5);
      ssegTimerCC1IRQHandler();
+     vButtonHandler(BUTTON_KEY); 
   }
   
 }
@@ -467,10 +463,9 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   */
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
-  
    ENC_PollEncoder();
 
-   vButtonHandler(BUTTON_KEY); 
+   //vButtonHandler(BUTTON_KEY); 
    
    Soldering_ISR();
    
