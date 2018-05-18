@@ -1,7 +1,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm8s.h"
-#include "station.h"    
 #include "stm8s_eval.h"
+#include "station.h"    
 #include "7-seg.h"
 #include "button.h"
 #include "pid.h"
@@ -9,14 +9,7 @@
 /* Private defines -----------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-
-
-static void CLK_Config(void)
-{
-    /* Initialization of the clock */
-    /* Clock divider to HSI/1 */
-    CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
-}
+ __IO int16_t Triac_angle = 0;
 
 /**
   * @brief  Configure TIM4 to generate an update interrupt each 1ms 
@@ -42,7 +35,7 @@ static void TIM4_Config(void)
   TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
   
   /* enable interrupts */
-  enableInterrupts();
+  //enableInterrupts();
 
   /* Enable TIM4 */
   TIM4_Cmd(ENABLE);
@@ -76,12 +69,18 @@ void FLASH_Config(void)
 
 void main(void)
 {
-  CFG->GCR |= 0x01; //disable swim pin
+  //CFG->GCR |= 0x01; //disable swim pin
+  
+  /* Configure the Fcpu to DIV1*/
+  CLK_SYSCLKConfig(CLK_PRESCALER_CPUDIV1);
+  
+   /* select Clock = 16 MHz */
+  CLK_SYSCLKConfig(CLK_PRESCALER_HSIDIV1);
+  
+  /* Configure the system clock to use HSI clock source and to run at 16Mhz */
+  CLK_ClockSwitchConfig(CLK_SWITCHMODE_AUTO, CLK_SOURCE_HSI, DISABLE, CLK_CURRENTCLOCKSTATE_DISABLE);
   
   CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
-  
-    /* select Clock = 16 MHz */
-  CLK_SYSCLKConfig(CLK_PRESCALER_HSIDIV1);
   
   CLK_HSICmd(ENABLE);
   
@@ -102,19 +101,76 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
 }
   */
   
-  CLK_Config();
+  //General purpose timer
+  TIM4_Config(); 
+
+#ifdef DFS_90
+/* Initialize I/Os in Output Mode */
+  GPIO_Init(TRIAC_PORT, (GPIO_Pin_TypeDef)TRIAC_PIN, GPIO_MODE_OUT_PP_LOW_FAST);  
+  GPIO_Init(ZERO_CROSS_PORT, ZERO_CROSS_PIN, GPIO_MODE_IN_PU_IT);
   
-  TIM4_Config();
+/* Initialize ext. interrput pin for zero cross deccation  */
+  EXTI_SetExtIntSensitivity(ZERO_EXTI_PORT, EXTI_SENSITIVITY_RISE_ONLY);
+  //  EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOC, EXTI_SENSITIVITY_FALL_ONLY);
+  EXTI_SetTLISensitivity(EXTI_TLISENSITIVITY_RISE_ONLY); 
   
-  //Soldering_TIM2_Config();
+//---------------------------------------------------  
+  /* Configure TIMER2 for AC dimming */
+  TIM2_DeInit();
+  TIM2_TimeBaseInit(TIM2_PRESCALER_8, 20000);
+  TIM2_OC1Init(TIM2_OCMODE_PWM1,TIM2_OUTPUTSTATE_ENABLE,0,TIM2_OCPOLARITY_HIGH);
   
+  /*        
+  TIM2_OC2Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 5, TIM2_OCPOLARITY_HIGH);
+  TIM2_OC2PreloadConfig(ENABLE);
+  */
+  
+  TIM2_ARRPreloadConfig(ENABLE);
+  
+  TIM2_Cmd(ENABLE);
+  //Delayms(1);
+  //Calc_AC_Freqency();
+
+//---------------------------------------------------  
+ /* Time base configuration */      
+   TIM1_TimeBaseInit(1, TIM1_COUNTERMODE_UP, 99, 0);
+
+  /* Output Compare Active Mode configuration: Channel1 */
+  /*
+    TIM2_OCMode = TIM2_OCMODE_ACTIVE
+    TIM2_OutputState = TIM2_OUTPUTSTATE_ENABLE
+    TIM2_Pulse = CCR1_Val
+    TIM2_OCPolarity = TIM2_OCPOLARITY_HIGH
+  */
+  TIM1_OC1Init(TIM1_OCMODE_PWM1, TIM1_OUTPUTSTATE_ENABLE, TIM1_OUTPUTNSTATE_DISABLE,
+               0, TIM1_OCPOLARITY_HIGH, TIM1_OCNPOLARITY_LOW, 
+               TIM1_OCIDLESTATE_RESET, TIM1_OCNIDLESTATE_RESET);           
+  
+  TIM1_OC1PreloadConfig(ENABLE);
+
+  TIM1_ARRPreloadConfig(ENABLE);
+  
+  TIM1_CtrlPWMOutputs(ENABLE);
+  
+  /* TIM1 enable counter */
+  TIM1_Cmd(ENABLE); 
+  
+  //reed input
+  GPIO_Init(REED_GPIO_PORT, REED_GPIO_PIN, GPIO_MODE_IN_PU_NO_IT);
+//---------------------------------------------------  
+  
+#endif
+  
+#ifndef DFS_90
   GPIO_Init(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN, GPIO_MODE_OUT_PP_LOW_FAST);
+#endif
   
   Soldering_ADC_Config();  
   
   STM_EVAL_SEGInit(SEG1);
   STM_EVAL_SEGInit(SEG2);
   STM_EVAL_SEGInit(SEG3);
+  
   STM_EVAL_LEDInit(LEDA);
   STM_EVAL_LEDInit(LEDB);
   STM_EVAL_LEDInit(LEDC);
@@ -122,50 +178,70 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   STM_EVAL_LEDInit(LEDE);
   STM_EVAL_LEDInit(LEDF);
   STM_EVAL_LEDInit(LEDG);
+
 #ifndef SOLDERING_VAR2
   //STM_EVAL_LEDInit(LEDP);
 #endif
-  STM_EVAL_SEGOn(SEG1);
-  STM_EVAL_SEGOn(SEG2);
-  STM_EVAL_SEGOn(SEG3);
-  
-  STM_EVAL_LEDOn(LEDA);
-  STM_EVAL_LEDOn(LEDB);
-  STM_EVAL_LEDOn(LEDC);
-  STM_EVAL_LEDOn(LEDD);
-  STM_EVAL_LEDOn(LEDE);
-  STM_EVAL_LEDOn(LEDF);
-  STM_EVAL_LEDOn(LEDG);
-  
+//  STM_EVAL_SEGOn(SEG1);
+//  STM_EVAL_SEGOn(SEG2);
+//  STM_EVAL_SEGOn(SEG3);
 //  
-  STM_EVAL_LEDOff(LEDA);
-  STM_EVAL_LEDOff(LEDB);
-  STM_EVAL_LEDOff(LEDC);
-  STM_EVAL_LEDOff(LEDD);
-  STM_EVAL_LEDOff(LEDE);
-  STM_EVAL_LEDOff(LEDF);
-  STM_EVAL_LEDOff(LEDG);
-  //STM_EVAL_LEDOff(LEDP);
-  
-  STM_EVAL_SEGOff(SEG1);
-  STM_EVAL_SEGOff(SEG2);
-  STM_EVAL_SEGOff(SEG3);
+//  STM_EVAL_LEDOn(LEDA);
+//  STM_EVAL_LEDOn(LEDB);
+//  STM_EVAL_LEDOn(LEDC);
+//  STM_EVAL_LEDOn(LEDD);
+//  STM_EVAL_LEDOn(LEDE);
+//  STM_EVAL_LEDOn(LEDF);
+//  STM_EVAL_LEDOn(LEDG);
+//  
+//  STM_EVAL_LEDOff(LEDA);
+//  STM_EVAL_LEDOff(LEDB);
+//  STM_EVAL_LEDOff(LEDC);
+//  STM_EVAL_LEDOff(LEDD);
+//  STM_EVAL_LEDOff(LEDE);
+//  STM_EVAL_LEDOff(LEDF);
+//  STM_EVAL_LEDOff(LEDG);
+//  STM_EVAL_LEDOff(LEDP);
+//  
+//  STM_EVAL_SEGOff(SEG1);
+//  STM_EVAL_SEGOff(SEG2);
+//  STM_EVAL_SEGOff(SEG3);
   
   
   //STM_EVAL_LEDOn(LEDP);
-  
+  //GPIO_Init(ENC_DN_BUTTON_PORT, ENC_DN_BUTTON_PIN, GPIO_MODE_IN_PU_NO_IT);
+  //GPIO_Init(ENC_UP_BUTTON_PORT, ENC_UP_BUTTON_PIN, GPIO_MODE_IN_PU_NO_IT);
   STM_EVAL_PBInit(BUTTON_KEY, BUTTON_MODE_GPIO);
   STM_EVAL_PBInit(BUTTON_UP, BUTTON_MODE_GPIO);
   STM_EVAL_PBInit(BUTTON_DOWN, BUTTON_MODE_GPIO);
+  STM_EVAL_PBInit(BUTTON_REED, BUTTON_MODE_GPIO);
   
-  ssegInit(); 
+  ssegInit();
   
   enableInterrupts(); 
-    
-  ssegSetBrightness(20);
+
+  Soldering_Main();
   
-  Soldering_Main(); 
-  while(1);
+  while(1)
+  {
+    /*
+    #if 0
+     for (level = 0; level < calUpperLimit; level +=5)
+     {
+       Delayms(1);
+     }
+     
+          for (level = calUpperLimit; level > 0; level -=5)
+     {
+       Delayms(1);
+     }
+    #else   
+    RawData  = GetAdcValue(ADC_SOLDER_TEMP_CHANNEL);
+    SmoothData = SmoothData - (LPF_Beta * (SmoothData - RawData));
+    level = ((int)SmoothData)*26;
+    #endif
+    */
+  }
 }
 
 #ifdef USE_FULL_ASSERT

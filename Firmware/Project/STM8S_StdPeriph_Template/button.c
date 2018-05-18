@@ -3,9 +3,9 @@
 #include "7-seg.h"
 
 /* Module defines */
-#define BUTTON_PRESS_THRESHOLD_MS	(uint16_t)(5)
-#define BUTTON_RELEASE_THRESHOLD_MS	(uint16_t)(5)
-#define BUTTON_HOLD_THRESHOLD_MS	(uint16_t)(100)
+#define BUTTON_PRESS_THRESHOLD_MS	(uint16_t)(10)
+#define BUTTON_RELEASE_THRESHOLD_MS	(uint16_t)(10)
+#define BUTTON_HOLD_THRESHOLD_MS	(uint16_t)(1000)
 #define BUTTON_INDICATION_ENABLED 0
 
 /* Module variables */
@@ -81,7 +81,7 @@ void ResetCounters(Button_TypeDef button) {
 /*---------------------------- Public functions ------------------------------*/
 eButtonEvent_t eButtonGetEvent(Button_TypeDef button) {
 eButtonEvent_t currentevent = (eButtonEvent[button]);
-	vButtonPostEvent(button, eButtonEventNone);
+if (currentevent != eButtonEventNone) vButtonPostEvent(button, eButtonEventNone);
 	return(currentevent);
 }
 

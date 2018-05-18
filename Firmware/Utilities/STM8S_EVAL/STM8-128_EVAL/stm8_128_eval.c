@@ -69,16 +69,16 @@ const uint8_t SEG_PIN[LEDn] = {SEG1_GPIO_PIN, SEG2_GPIO_PIN, SEG3_GPIO_PIN};
 
 GPIO_TypeDef* BUTTON_PORT[BUTTONn] =
   {
-    ENC_KEY_BUTTON_PORT, ENC_UP_BUTTON_PORT, ENC_DN_BUTTON_PORT
+    ENC_KEY_BUTTON_PORT, ENC_UP_BUTTON_PORT, ENC_DN_BUTTON_PORT, REED_GPIO_PORT
   };
 const uint8_t BUTTON_PIN[BUTTONn] =
   {
-    ENC_KEY_BUTTON_PIN, ENC_UP_BUTTON_PIN, ENC_DN_BUTTON_PIN
+    ENC_KEY_BUTTON_PIN, ENC_UP_BUTTON_PIN, ENC_DN_BUTTON_PIN, REED_GPIO_PIN
   };
 
 const uint8_t BUTTON_EXTI[BUTTONn] =
   {
-    KEY_BUTTON_EXTI_PORT, UP_BUTTON_EXTI_PORT, DN_BUTTON_EXTI_PORT
+    KEY_BUTTON_EXTI_PORT, UP_BUTTON_EXTI_PORT, DN_BUTTON_EXTI_PORT, REED_EXTI_PORT
   };
 
 /**
@@ -118,8 +118,7 @@ void STM_EVAL_SEGInit(Seg_TypeDef Seg)
   */
 void STM_EVAL_SEGOn(Seg_TypeDef Seg)
 {
-  SEG_PORT[Seg]->ODR &= (uint8_t)~SEG_PIN[Seg];
-  //SEG_PORT[Seg]->ODR |= (uint8_t)SEG_PIN[Seg];
+  SEG_PORT[Seg]->ODR |= (uint8_t)SEG_PIN[Seg];
 }
 
 /**
@@ -134,8 +133,7 @@ void STM_EVAL_SEGOn(Seg_TypeDef Seg)
   */
 void STM_EVAL_SEGOff(Seg_TypeDef Seg)
 {
-  SEG_PORT[Seg]->ODR |= (uint8_t)SEG_PIN[Seg];
-  //SEG_PORT[Seg]->ODR &= (uint8_t)~SEG_PIN[Seg];
+  SEG_PORT[Seg]->ODR &= (uint8_t)~SEG_PIN[Seg];
 }
 
 /**
@@ -166,7 +164,7 @@ void STM_EVAL_LEDInit(Led_TypeDef Led)
   */
 void STM_EVAL_LEDOn(Led_TypeDef Led)
 {
-  LED_PORT[Led]->ODR &= (uint8_t)~LED_PIN[Led];
+  LED_PORT[Led]->ODR |= (uint8_t)LED_PIN[Led]; 
 }
 
 /**
@@ -181,7 +179,7 @@ void STM_EVAL_LEDOn(Led_TypeDef Led)
   */
 void STM_EVAL_LEDOff(Led_TypeDef Led)
 {
-  LED_PORT[Led]->ODR |= (uint8_t)LED_PIN[Led];
+  LED_PORT[Led]->ODR &= (uint8_t)~LED_PIN[Led];
 }
 
 /**

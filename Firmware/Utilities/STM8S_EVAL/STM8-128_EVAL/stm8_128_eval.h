@@ -120,6 +120,7 @@
 #define UP_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 #define DN_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 
+//----------------------------------------------------------------------------------
 #elif SOLDERING_VAR2
 
 #define DIGIT_POLARITY_HIGH
@@ -193,6 +194,7 @@
 #define UP_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 #define DN_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 
+//----------------------------------------------------------------------------------
 #elif SOLDERING_HAKKO_A1321_MINI
 
 #define DIGIT_POLARITY_LOW
@@ -267,6 +269,93 @@
 #define UP_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 #define DN_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 
+//----------------------------------------------------------------------------------
+#elif DFS_90
+
+extern __IO int16_t Triac_angle;
+    
+#define SEGMENT_POLARITY_HIGH
+#define ELEMENT_POLARITY_LOW
+
+#define LEDn                         8
+   
+#define LED_A_GPIO_PORT              GPIOA
+#define LED_A_GPIO_PIN               GPIO_PIN_1
+
+#define LED_B_GPIO_PORT              GPIOC
+#define LED_B_GPIO_PIN               GPIO_PIN_4
+    
+#define LED_C_GPIO_PORT              GPIOD
+#define LED_C_GPIO_PIN               GPIO_PIN_5
+    
+#define LED_D_GPIO_PORT              GPIOC
+#define LED_D_GPIO_PIN               GPIO_PIN_5
+    
+#define LED_E_GPIO_PORT              GPIOC
+#define LED_E_GPIO_PIN               GPIO_PIN_6
+    
+#define LED_F_GPIO_PORT              GPIOC
+#define LED_F_GPIO_PIN               GPIO_PIN_3
+    
+#define LED_G_GPIO_PORT              GPIOD
+#define LED_G_GPIO_PIN               GPIO_PIN_7
+    
+#define LED_H_GPIO_PORT              GPIOD
+#define LED_H_GPIO_PIN               GPIO_PIN_6
+
+#define SEG1_GPIO_PORT               GPIOA
+#define SEG1_GPIO_PIN                GPIO_PIN_2
+    
+#define SEG2_GPIO_PORT               GPIOF
+#define SEG2_GPIO_PIN                GPIO_PIN_4
+    
+#define SEG3_GPIO_PORT               GPIOC
+#define SEG3_GPIO_PIN                GPIO_PIN_7
+
+#define CONTROL_GPIO_PORT            GPIOB
+#define CONTROL_GPIO_PIN             GPIO_PIN_3
+
+#define ADC_GPIO_PORT                GPIOB
+#define ADC_GPIO_PIN                 GPIO_PIN_1
+
+#define ADC_SOLDER_TEMP_CHANNEL      ADC1_CHANNEL_1
+
+#define BUTTONn                     4
+
+#define ENC_KEY_BUTTON_PORT            GPIOB
+#define ENC_KEY_BUTTON_PIN             GPIO_PIN_3
+
+#define ENC_DN_BUTTON_PORT             GPIOD
+#define ENC_DN_BUTTON_PIN              GPIO_PIN_0
+
+#define ENC_UP_BUTTON_PORT             GPIOD
+#define ENC_UP_BUTTON_PIN              GPIO_PIN_2
+
+/**
+ * @brief EXTI push-button definition
+ */
+#define KEY_BUTTON_EXTI_PORT            EXTI_PORT_GPIOD
+#define UP_BUTTON_EXTI_PORT             EXTI_PORT_GPIOD
+#define DN_BUTTON_EXTI_PORT             EXTI_PORT_GPIOD
+#define REED_EXTI_PORT                  EXTI_PORT_GPIOB
+
+#define ZERO_EXTI_PORT                  EXTI_PORT_GPIOE
+#define ZERO_CROSS_PORT                 GPIOE
+#define ZERO_CROSS_PIN                  GPIO_PIN_5
+
+#define TRIAC_PORT                      GPIOD
+#define TRIAC_PIN                       GPIO_PIN_4
+
+#define REED_GPIO_PORT                  GPIOB
+#define REED_GPIO_PIN                   GPIO_PIN_0
+
+#define TRIAC_FIRE_WIDTH 500
+#define UPPER_LIMIT 16500
+#define LOWER_LIMIT 0
+#define LEVEL_STEP  1
+#define RAMP_STEP   2
+
+//----------------------------------------------------------------------------------
 #elif SOLDERING_HAKKO_A1321
 
 #define DIGIT_POLARITY_LOW

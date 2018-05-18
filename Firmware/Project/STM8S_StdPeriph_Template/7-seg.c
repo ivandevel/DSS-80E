@@ -14,7 +14,8 @@ void WriteDigit(char digit);
 #define DEFAULT_BRIGHTNESS_PERCENT	100
 
 /* We can assign a 7-seg symbol code to any ASCII symbol */
-const char charmap[128] = {
+#pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS+2
+static const char charmap[128] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	//		0...7
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	//		8...15
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	//		16..23
@@ -42,46 +43,11 @@ unsigned short RefreshTimerPrescaler = 1;	//it means divided by 2
 
 
 /* 7-segment dynamic indication timer init */
-void ssegInit(void) {
+void ssegInit(void) 
+{
   
-    /* TIM4 configuration:
-   - TIM4CLK is set to 16 MHz, the TIM4 Prescaler is equal to 128 so the TIM1 counter
-   clock used is 16 MHz / 128 = 125 000 Hz
-  - With 125 000 Hz we can generate time base:
-      max time base is 2.048 ms if TIM4_PERIOD = 255 --> (255 + 1) / 125000 = 2.048 ms
-      min time base is 0.016 ms if TIM4_PERIOD = 1   --> (  1 + 1) / 125000 = 0.016 ms
-  - In this example we need to generate a time base equal to 1 ms
-   so TIM4_PERIOD = (0.001 * 125000 - 1) = 124 */
-
- /* Time base configuration */      
-   TIM1_TimeBaseInit(0, TIM1_COUNTERMODE_UP, RefreshTimerThreshold, 0);
-
-  /* Prescaler configuration */
-  TIM1_PrescalerConfig(400, TIM1_PSCRELOADMODE_IMMEDIATE);
-
-  /* Output Compare Active Mode configuration: Channel1 */
-  /*
-    TIM2_OCMode = TIM2_OCMODE_ACTIVE
-    TIM2_OutputState = TIM2_OUTPUTSTATE_ENABLE
-    TIM2_Pulse = CCR1_Val
-    TIM2_OCPolarity = TIM2_OCPOLARITY_HIGH
-  */
-  TIM1_OC1Init(TIM1_OCMODE_PWM1, TIM1_OUTPUTSTATE_ENABLE, TIM1_OUTPUTNSTATE_DISABLE,
-               RefreshTimerThreshold, TIM1_OCPOLARITY_LOW, TIM1_OCNPOLARITY_LOW, 
-               TIM1_OCIDLESTATE_RESET, TIM1_OCNIDLESTATE_RESET);           
-  
-  /* Update Interrupt Enable */
-  TIM1_ITConfig(TIM1_IT_UPDATE, ENABLE);
-  
-  TIM1_ITConfig(TIM1_IT_CC1, ENABLE);
-  //TIM1_ITConfig(TIM1_IT_CC1, ENABLE);
-  
-  TIM1_OC1PreloadConfig(DISABLE);
-
-  TIM1_ARRPreloadConfig(ENABLE);
-  
-  /* TIM2 enable counter */
-  TIM1_Cmd(ENABLE);
+   
+ 
 }
 
 
@@ -96,21 +62,31 @@ void ssegTimerCC1IRQHandler(void)
 		/* Clear TIM Capture compare interrupt pending bit */
 		TIM1_ClearITPendingBit(TIM1_IT_CC1);
 		/* Disable current digit */
-		STM_EVAL_SEGOff(CurrentSeg);
+#ifdef USE_BRIGHTNESS            
+#ifdef SEGMENT_POLARITY_HIGH
+			/* Disable current digit */
+			STM_EVAL_SEGOff(CurrentSeg);
+#endif
+
+#ifdef SEGMENT_POLARITY_LOW
+			/* Disable current digit */
+			STM_EVAL_SEGOn(CurrentSeg);
+#endif 
+#endif                    
 }
 
 void ssegTimerIRQHandler(void) 
 {
 			/* Switch to the next digit */
 			/* Clear TIM Update interrupt pending bit */
-			TIM1_ClearITPendingBit(TIM1_IT_UPDATE);
+			//TIM1_ClearITPendingBit(TIM1_IT_UPDATE);
 
-#ifdef DIGIT_POLARITY_LOW
+#ifdef SEGMENT_POLARITY_HIGH
 			/* Disable current digit */
 			STM_EVAL_SEGOff(CurrentSeg);
 #endif
 
-#ifdef DIGIT_POLARITY_HIGH
+#ifdef SEGMENT_POLARITY_LOW
 			/* Disable current digit */
 			STM_EVAL_SEGOn(CurrentSeg);
 #endif                        
@@ -124,12 +100,12 @@ void ssegTimerIRQHandler(void)
 			WriteDigit(Buffer[CurrentSeg]);
 
                         
-#ifdef DIGIT_POLARITY_LOW                       
+#ifdef SEGMENT_POLARITY_HIGH                       
 			/* Enable digit */
 			STM_EVAL_SEGOn(CurrentSeg);
 #endif
 
-#ifdef DIGIT_POLARITY_HIGH                       
+#ifdef SEGMENT_POLARITY_LOW                       
 			/* Enable digit */
 			STM_EVAL_SEGOff(CurrentSeg);
 #endif
@@ -178,9 +154,20 @@ Led_TypeDef Led;
 	/* Write new DIGIT port bits */
 	for ( Led = LEDA; Led < LEDn; Led++ ) {
 		if (digit & 0x01)
-			STM_EVAL_LEDOn(Led);
-		else
+                #ifdef ELEMENT_POLARITY_LOW
 			STM_EVAL_LEDOff(Led);
+                #endif
+                #ifdef ELEMENT_POLARITY_HIGH
+			STM_EVAL_LEDOn(Led);
+                #endif
+		else
+                #ifdef ELEMENT_POLARITY_LOW
+			STM_EVAL_LEDOn(Led);
+                #endif
+                #ifdef ELEMENT_POLARITY_HIGH
+			STM_EVAL_LEDOff(Led);
+                #endif
+                
 		digit >>= 1;
 	}
 }
@@ -232,6 +219,7 @@ void itoa(int n, char * s)
  }
 
 void ssegWriteInt(uint16_t value) {
+  ssegClear();
  static char buf[3];
   
  memset(buf, 0x00, sizeof(buf));

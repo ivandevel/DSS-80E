@@ -100,7 +100,8 @@ typedef enum
 {
   BUTTON_KEY = 0,
   BUTTON_UP = 1,
-  BUTTON_DOWN = 2
+  BUTTON_DOWN = 2,
+  BUTTON_REED = 3  
 } Button_TypeDef;
 
 typedef enum
@@ -134,7 +135,7 @@ typedef enum
   *       boards, you can define the board in your toolchain compiler preprocessor.
   */
 #if !defined (USE_STM8_128_EVAL)
-//#define USE_STM8_128_EVAL
+#define USE_STM8_128_EVAL
 #endif
 
 #ifdef USE_STM8_128_EVAL

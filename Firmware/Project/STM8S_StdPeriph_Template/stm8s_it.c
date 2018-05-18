@@ -160,6 +160,14 @@ INTERRUPT_HANDLER(EXTI_PORTE_IRQHandler, 7)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+#ifdef DFS_90
+  TIM2_SetCounter(2000 + Triac_angle);
+  //monitor the level value 
+  if (Triac_angle == LOWER_LIMIT)
+    TIM2_SetCompare1(0);
+  else 
+    TIM2_SetCompare1(TRIAC_FIRE_WIDTH);
+#endif
 }
 
 #ifdef STM8S903
@@ -224,7 +232,7 @@ INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_BRK_IRQHandler, 11)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-  ssegTimerIRQHandler();
+  TIM1_ClearITPendingBit(TIM1_IT_UPDATE);
 }
 
 /**
@@ -237,12 +245,7 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-    if (TIM1_GetITStatus(TIM1_IT_CC1) != RESET)
-  {
-     ssegTimerCC1IRQHandler();
-     vButtonHandler(BUTTON_KEY); 
-  }
-  
+    TIM1_ClearITPendingBit(TIM1_IT_CC1);
 }
 
 #ifdef STM8S903
@@ -463,11 +466,22 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   */
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
+
+#ifndef DFS_90
+   Soldering_ISR();
+#endif
+   
+#ifdef DFS_90
+   HotAir_ISR();
+#endif
+   
+   ssegTimerIRQHandler();
+
    ENC_PollEncoder();
 
-   //vButtonHandler(BUTTON_KEY); 
+   vButtonHandler(BUTTON_KEY);
    
-   Soldering_ISR();
+   vButtonHandler(BUTTON_REED);
    
    TIM4_ClearITPendingBit(TIM4_IT_UPDATE);
    

@@ -1,84 +1,74 @@
 #include "stm8s.h"
+#include "stm8s_eval.h"
 #include <stdlib.h>
 #include "station.h" 
 #include "pid.h"
 #include "7-seg.h"
 #include "button.h"
 #include "thermo.h"
-#include "control.h"
 
 #pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS 
 __no_init volatile uint16_t eeSetpoint;
 
-uint8_t prediv = 0;
-uint32_t tempaccum;
-uint16_t timedivider;
-static uint16_t display_setpoint=DISPLAY_SETPOINT_TIMEOUT;
-uint16_t Temperature = 0;
-uint16_t temp_prev, temp_curr = 0;
+static uint32_t tempaccum;
+static uint16_t timedivider;
+static volatile uint16_t display_setpoint_timeout=DISPLAY_SETPOINT_TIMEOUT;
+static volatile uint16_t display_type_timeout=DISPLAY_SETPOINT_TIMEOUT;
+static uint16_t Temperature = 0;
+static uint16_t tSet = 0;
 extern uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
-static uint16_t Power = 0;  
+static int16_t Power = 0;  
 static uint32_t SecondTick = 0;
-pid_t pid_s;
-uint16_t Setpoint=150;
-uint16_t *lcddata;
-uint8_t StbyMode=MODE_WORKING;
+static uint16_t Setpoint=0;
+static volatile uint16_t *lcddata;
+static uint8_t StbyMode=MODE_WORKING;
 
-typedef struct {
-	int32_t q; //process noise covariance
-	int32_t r; //measurement noise covariance
-	int32_t x; //value
-	int32_t p; //estimation error covariance
-	int32_t k; //kalman gain
-} kalman_state;
+static uint8_t RegulMode = 0;
+static uint16_t FanSpeed = 100;
 
-kalman_state result_x;
+#ifdef DFS_90
 
-void kalman_update (int32_t measurement)
+__IO uint16_t ADC_Val;
+__IO uint16_t calUpperLimit;
+__IO uint16_t levelMemory = UPPER_LIMIT;
+
+void Calc_AC_Freqency(void)
 {
-	result_x.p = result_x.p + result_x.q;	
-	//measurement update
-	result_x.k = result_x.p / (result_x.p + result_x.r);
-	result_x.x = result_x.x + result_x.k * (measurement - result_x.x);
-	result_x.p = (1000UL - result_x.k) * result_x.p;  
-}
+uint16_t AcPeriod=0;
 
-short kalman_get_x (int32_t v)
-{
-	kalman_update ((int32_t) v);
-	
-	return (int32_t) result_x.x;
-}
-
-int kalman_init ()
-{
-	result_x.q = 1;
-	result_x.r = 1000;
-	result_x.p = 0; //0.22
-	result_x.x = 0;
-	result_x.k = 0;
+  while( AcPeriod < 19500 ||  AcPeriod > 20500 ){
+    while(!GPIO_ReadInputPin(ZERO_CROSS_PORT,ZERO_CROSS_PIN)); // wait for AC low
+    while(GPIO_ReadInputPin(ZERO_CROSS_PORT,ZERO_CROSS_PIN)); // wait for AC falling high
+    TIM2_SetCounter(0);                                            // reset counter
+    while(!GPIO_ReadInputPin(ZERO_CROSS_PORT,ZERO_CROSS_PIN)); // wait for AC low
+    while(GPIO_ReadInputPin(ZERO_CROSS_PORT,ZERO_CROSS_PIN)); // wait for AC falling high
+    AcPeriod =  TIM2_GetCounter();
+  }
   
-	return 0;
+  TIM2_SetAutoreload(AcPeriod );
+  calUpperLimit =(uint16_t)( AcPeriod *0.80);
+  levelMemory = calUpperLimit;
 }
+#endif
 
-void Soldering_TIM2_Config(void)
-{
-  /* Time base configuration */
-  TIM2_TimeBaseInit(TIM2_PRESCALER_32, 512);
-
-  /* PWM1 Mode configuration: Channel3 */         
-  TIM2_OC3Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 0, TIM2_OCPOLARITY_HIGH);
-  TIM2_OC3PreloadConfig(ENABLE);
-
-//    /* PWM1 Mode configuration: Channel3 */         
-//  TIM2_OC2Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 0, TIM2_OCPOLARITY_HIGH);
-//  TIM2_OC2PreloadConfig(ENABLE);
-  
-  TIM2_ARRPreloadConfig(ENABLE);
-
-  /* TIM2 enable counter */
-  TIM2_Cmd(ENABLE);
-}
+//void Soldering_TIM2_Config(void)
+//{
+//  /* Time base configuration */
+//  TIM2_TimeBaseInit(TIM2_PRESCALER_32, 512);
+//
+//  /* PWM1 Mode configuration: Channel3 */         
+//  TIM2_OC3Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 0, TIM2_OCPOLARITY_HIGH);
+//  TIM2_OC3PreloadConfig(ENABLE);
+//
+////    /* PWM1 Mode configuration: Channel3 */         
+////  TIM2_OC2Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 0, TIM2_OCPOLARITY_HIGH);
+////  TIM2_OC2PreloadConfig(ENABLE);
+//  
+//  TIM2_ARRPreloadConfig(ENABLE);
+//
+//  /* TIM2 enable counter */
+//  TIM2_Cmd(ENABLE);
+//}
 
 void Soldering_ADC_Config (void)
 {
@@ -101,79 +91,133 @@ void Soldering_ADC_Config (void)
 
 void Soldering_Main(void)
 {
-  Control_Init();
   
   if ((eeSetpoint > 450) || (eeSetpoint < 150)) eeSetpoint = 150;
   
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
   
-  Control_SetT(Setpoint);
+  tSet = Setpoint;
   
-//  pid_s.KP = 8; //8
-//  pid_s.KI = 22; //22
-//  pid_s.KD = 4; //4
-//  pid_s.KT = 30; //30
-  
-  //kalman_init();
-uint8_t now_button;
+  TIM1_SetCompare1(FanSpeed);
+  /*
+  pid_s.KP = 60; //8
+  pid_s.KI = 49; //22
+  pid_s.KD = 20; //4
+  pid_s.KT = 5; //30
+  */
+//uint8_t now_button=0;
 
   while(1) 
   {
-/*
-    if (!STM_EVAL_PBGetState(BUTTON_UP) && now_button == 0)     
-    {
-      now_button = 1;
+    
+//   if (eButtonGetEvent(BUTTON_REED) == eButtonEventHold)
+//    {
+//      RegulMode = PARAM_COOLDOWN;
+//      FanSpeed = 90;
+//      TIM1_SetCompare1(FanSpeed);
+//      display_type_timeout = DISPLAY_SETPOINT_TIMEOUT;
+//    } 
+    
+    //Pressing encoder button
+  if (eButtonGetEvent(BUTTON_KEY) == eButtonEventPress ) {
+#ifndef DFS_90
+      switch(StbyMode)
+      {
+      case MODE_WORKING:
+        StbyMode = MODE_POWEROFF;
+        break;
+      case MODE_STANDBY:        
+        StbyMode = MODE_WORKING;
+        break;
+      case MODE_POWEROFF:
+        StbyMode = MODE_WORKING;
+        break; 
+      }
+#endif 
       
-      switch(StbyMode)
+#ifdef DFS_90
+      StbyMode = MODE_WORKING;
+      SecondTick = 0;
+      
+      switch(RegulMode)
       {
-      case MODE_WORKING:
-        StbyMode = MODE_POWEROFF;
+      case PARAM_TEMPERATURE:
+        RegulMode = PARAM_FANSPEED;
         break;
-      case MODE_STANDBY:        
-        StbyMode = MODE_WORKING;
+      case PARAM_FANSPEED:        
+        RegulMode = PARAM_COOLDOWN;
         break;
-      case MODE_POWEROFF:
-        StbyMode = MODE_WORKING;
-        break; 
+      case PARAM_HEATPOWER:
+        RegulMode = PARAM_COOLDOWN;
+        break;
+      case PARAM_COOLDOWN:
+        RegulMode = PARAM_TEMPERATURE;
+        FanSpeed = 100;
+        TIM1_SetCompare1(FanSpeed);
+        break;
+//      case PARAM_STANDBY:
+//        RegulMode = PARAM_TEMPERATURE;
+//        FanSpeed = 100;
+//        TIM1_SetCompare1(FanSpeed);
+//        break;
       }
-    } else {
-      now_button = 0;
-    } */
-    
-  if ((eButtonGetEvent(BUTTON_KEY) == eButtonEventPress)) {
-    
-      switch(StbyMode)
-      {
-      case MODE_WORKING:
-        StbyMode = MODE_POWEROFF;
-        break;
-      case MODE_STANDBY:        
-        StbyMode = MODE_WORKING;
-        break;
-      case MODE_POWEROFF:
-        StbyMode = MODE_WORKING;
-        break; 
-      }
+      display_type_timeout = DISPLAY_SETPOINT_TIMEOUT;
+#endif      
+      
     }
   
     uint8_t state = ENC_GetStateEncoder();
-
-			if (state != 0) {
+  
+  //Encoder is rotated
+  if (state != 0) 
+  {
                           StbyMode = MODE_WORKING;
                           SecondTick = 0;
                           
-                          display_setpoint = DISPLAY_SETPOINT_TIMEOUT;
+                          display_setpoint_timeout = DISPLAY_SETPOINT_TIMEOUT;
+                          display_type_timeout = 0;
                           
 				if (state == RIGHT_SPIN) {
+                                  switch (RegulMode)
+                                  {
+                                  case PARAM_TEMPERATURE:
 					Setpoint+=5;
-                                        if (Setpoint >= 450) Setpoint = 450;
-                                        Control_SetT(Setpoint); 
+                                        if (Setpoint >= 500) Setpoint = 500;
+                                        tSet = Setpoint; 
+                                        break;
+                                  case PARAM_FANSPEED:
+                                  case PARAM_COOLDOWN:
+                                    FanSpeed+=5;
+                                        if (FanSpeed >= 100) FanSpeed = 100;
+                                        TIM1_SetCompare1(FanSpeed); 
+                                    break;
+                                  case PARAM_HEATPOWER:
+                                    Power+=5;
+                                    if (Power >= 995) Power = 995;
+                                    break;
+                                  }
 				}
+                                
 				if (state == LEFT_SPIN) {
+                                  switch (RegulMode)
+                                  {
+                                  case PARAM_TEMPERATURE:
                                         Setpoint-=5;
                                         if (Setpoint <= 150) Setpoint = 150;
-                                        Control_SetT(Setpoint); 
+                                        tSet = Setpoint;
+                                        break;
+                                  case PARAM_FANSPEED:
+                                  case PARAM_COOLDOWN:
+                                    FanSpeed-=5;
+                                        if (FanSpeed <= 50) FanSpeed = 50;
+                                        TIM1_SetCompare1(FanSpeed);
+                                    break;
+                                    case PARAM_HEATPOWER:
+                                    Power-=5;
+                                        if (Power <= 5) Power = 5;
+                                    break;
+                                  }
 				}
 			}
     
@@ -203,15 +247,14 @@ return Xe;
 
 uint8_t tempcount = 0;
 uint16_t microvolts;
+
 void Soldering_ISR (void)
 {
-  /* In order to detect unexpected events during development,
-     it is recommended to set a breakpoint on the following instruction.
-  */
-
+   ssegWriteStr("   ", 3, SEG1);
+   
    timedivider++;
   
-   if ((StbyMode == MODE_WORKING) || (StbyMode == MODE_STANDBY)) SecondTick++;
+  if ((StbyMode == MODE_WORKING) || (StbyMode == MODE_STANDBY)) SecondTick++;
 
   if (SecondTick ==  STANDBY_TIME_MIN * 60000UL) // 5 minutes
    {
@@ -227,12 +270,13 @@ void Soldering_ISR (void)
   
   
    if (timedivider == 1) {
-     
+     #ifndef DFS_90
      GPIO_WriteLow(ADC_GPIO_PORT, ADC_GPIO_PIN);
      GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
      //TIM2_SetCompare3(0);
      GPIO_WriteLow(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN);
      ADC1_Cmd(ENABLE);
+     #endif
    }
    
    
@@ -244,33 +288,101 @@ void Soldering_ISR (void)
   
   
      if (timedivider == (MEASURING_INTERVAL_TICKS-Power+1)) {
+     #ifndef DFS_90
      GPIO_WriteHigh(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN);
+     #endif
    }
   
-  if (display_setpoint)
+#ifndef DFS_90
+  if (display_setpoint_timeout)
     {
-      display_setpoint--;
+      display_setpoint_timeout--;
       //Уставку - на экран
       lcddata = &Setpoint;
       //Если кончилось время отображения значения уставки
-      if (!display_setpoint) {
+      if (!display_setpoint_timeout) {
         //Температуру - на экран
         lcddata = &Temperature;
         //lcddata = &Power;
         eeSetpoint = Setpoint;
       }
     }
-    
-    ssegWriteStr("   ", 3, SEG1);
+#endif
+  
+#ifdef DFS_90 
+if (display_type_timeout)
+    {
+      display_type_timeout--;
+      //Уставку - на экран
+      switch (RegulMode)
+      {
+        case PARAM_TEMPERATURE:
+        ssegWriteStr("SEt", 3, SEG1);
+        break;
+        case PARAM_FANSPEED:
+        ssegWriteStr("FAn", 3, SEG1);
+        break;
+        case PARAM_HEATPOWER:
+        ssegWriteStr("HEA", 3, SEG1);
+        break;
+        case PARAM_COOLDOWN:
+        ssegWriteStr("COL", 3, SEG1);
+        break;
+//        case PARAM_STANDBY:
+//        ssegWriteStr("Stb", 3, SEG1);
+//        break;
+      }
+      //Если кончилось время отображения значения уставки
+      if (!display_type_timeout) {
+        //Температуру - на экран
+        lcddata = &Temperature;
+        //lcddata = &Power;
+        eeSetpoint = Setpoint;
+      }
+    }  
+  
+//While spinning encoder - show changing parameter value
+if (display_setpoint_timeout)
+    {
+      display_setpoint_timeout--;
+      //Уставку - на экран
+      switch (RegulMode)
+      {
+        case PARAM_TEMPERATURE:
+        lcddata = &Setpoint;
+        break;
+        case PARAM_FANSPEED:
+        lcddata = &FanSpeed;
+        break;
+        case PARAM_HEATPOWER:
+        lcddata = &Power;
+        break;
+        case PARAM_COOLDOWN:
+        lcddata = &FanSpeed;
+        break;
+      }
+      //Если кончилось время отображения значения уставки
+      if (!display_setpoint_timeout) {
+        //Температуру - на экран
+        lcddata = &Temperature;
+        //lcddata = &Power;
+        eeSetpoint = Setpoint;
+      }
+    }
+#endif
 
+#ifndef DFS_90  
      switch(StbyMode)
       {
       case MODE_WORKING:       
-        if ((Temperature > 480) &&  !display_setpoint) {
+        if ((Temperature > 480)) {
         ssegWriteStr("---", 3, SEG1); 
         }
         else
-      ssegWriteInt(*lcddata);       
+          {
+      if (!display_type_timeout) 
+        ssegWriteInt(*lcddata); 
+          }
       break;
       case MODE_STANDBY:
       ssegWriteStr("Stb", 3, SEG1);
@@ -279,31 +391,66 @@ void Soldering_ISR (void)
       ssegWriteStr("OFF", 3, SEG1);
       break; 
       }
-    
+#endif
+  
+#ifdef DFS_90
+  if ((Temperature > 480)) {
+        ssegWriteStr("---", 3, SEG1); 
+        }
+        else
+          {
+      if (!display_type_timeout) 
+        ssegWriteInt(*lcddata); 
+          }
+#endif
+  
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
-     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));
+     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
 
+#ifndef DFS_90
       switch(StbyMode)
       {
       case MODE_WORKING:    
-      Control_SetT(Setpoint);
-      Control_SetTc(Temperature);
+      tSet = Setpoint;
       break;
       case MODE_STANDBY:
-      Control_SetT(Setpoint/2);
-      Control_SetTc(Temperature);
+      tSet = Setpoint/2;
       break;
       case MODE_POWEROFF:
-      Control_SetT(0);
-      Control_SetTc(Temperature); 
+      tSet = 0;
       break;      
-      }  
+      }
+#endif     
+      
+#ifdef DFS_90
+      switch (RegulMode)
+      {
+        case PARAM_TEMPERATURE:
+        tSet = Setpoint;
+        Power = PIDcal(tSet, Temperature);
+        Triac_angle = Power*16;
+        
+        break;
+        case PARAM_FANSPEED:
+        tSet = Setpoint;
+        Power = PIDcal(tSet, Temperature);
+        Triac_angle = Power*16;
+        break;
+        case PARAM_HEATPOWER:
+        Triac_angle = Power*16;
+        break;
+        case PARAM_COOLDOWN:
+        tSet = 0;
+        Power = 0;
+        break;
+      }
+#endif
+      
+     #ifndef DFS_90
+       Power = PIDcal(tSet, Temperature);
+    #endif
 
-     Control_Exe();
-     
-     Power = Control_GetP();
-     
      tempaccum = 0;
      tempcount = 0;
 
@@ -311,9 +458,174 @@ void Soldering_ISR (void)
      
     if (timedivider == MEASURING_INTERVAL_TICKS) { //20
      timedivider = 0;
+     #ifndef DFS_90
      ADC1_Cmd(DISABLE);
      GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_FAST);
      GPIO_WriteHigh(ADC_GPIO_PORT, ADC_GPIO_PIN);
-     
+     #endif
    }
+}
+
+void HotAir_ISR (void)  
+{
+  static uint16_t old_Temperature;
+  
+  Triac_angle = Power*16;
+  
+  timedivider++;
+   
+   if (timedivider == 2) {
+     tempaccum += GetAdcValue(ADC_SOLDER_TEMP_CHANNEL);
+     tempcount++;
+   } 
+   
+   if (timedivider == MEASURING_INTERVAL_TICKS) { 
+     timedivider = 0;
+   }
+   
+   if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
+        
+     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));    
+     
+      switch (RegulMode)
+      {
+        case PARAM_TEMPERATURE:
+        case PARAM_FANSPEED:
+        tSet = Setpoint;
+        Power = pid(tSet, Temperature);
+        Triac_angle = Power*16;
+        if (FanSpeed < 50)
+        {
+          FanSpeed = 50;
+          TIM1_SetCompare1(FanSpeed);
+        }
+        break;
+        case PARAM_HEATPOWER:
+        Triac_angle = Power*16;
+        if (FanSpeed < 50)
+        {
+          FanSpeed = 50;
+          TIM1_SetCompare1(FanSpeed);
+        }
+        break;
+        case PARAM_COOLDOWN:
+        tSet = 0;
+        Power = 0;
+        if  (Temperature < 32)
+        {
+          //RegulMode = PARAM_STANDBY;
+          FanSpeed = 0;
+          TIM1_SetCompare1(FanSpeed);
+        }
+        
+         if  (Temperature > 45)
+        {
+          FanSpeed = 100;
+          TIM1_SetCompare1(FanSpeed);
+        }
+        break;
+//       case PARAM_STANDBY:
+//        tSet = 0;
+//        Power = 0;
+//        if  (Temperature < 31) 
+//        {
+//          //RegulMode = PARAM_STANDBY;
+//          FanSpeed = 0;
+//          TIM1_SetCompare1(FanSpeed);
+//        }
+//        if  (Temperature > 40)
+//        {
+//          FanSpeed = 100;
+//          TIM1_SetCompare1(FanSpeed);
+//        }
+//       break;
+      }
+     
+     tempaccum = 0;
+     tempcount = 0;
+     
+     if ((display_setpoint_timeout==0) && (display_type_timeout==0)) {
+       if (old_Temperature != Temperature) {
+       ssegWriteInt(Temperature); 
+       old_Temperature = Temperature;
+       }
+       
+     }
+   }
+  
+if (display_type_timeout)
+    {
+      if (display_type_timeout == DISPLAY_SETPOINT_TIMEOUT)
+      {
+      switch (RegulMode)
+      {
+        case PARAM_TEMPERATURE:
+        ssegWriteStr("SEt", 3, SEG1);
+        break;
+        case PARAM_FANSPEED:
+        ssegWriteStr("FAn", 3, SEG1);
+        break;
+        case PARAM_HEATPOWER:
+        ssegWriteStr("HEA", 3, SEG1);
+        break;
+        case PARAM_COOLDOWN:
+        ssegWriteStr("COL", 3, SEG1);
+        break;
+//        case PARAM_STANDBY:
+//        ssegWriteStr("Stb", 3, SEG1);
+//        break;
+      }
+      }
+      
+      display_type_timeout--;
+      
+      //Если кончилось время отображения значения уставки
+      if (display_type_timeout == 0) {
+        display_setpoint_timeout = DISPLAY_SETPOINT_TIMEOUT;
+      }
+    }
+
+if (display_setpoint_timeout)
+    {
+      //Уставку - на экран
+  if (display_setpoint_timeout == DISPLAY_SETPOINT_TIMEOUT) {
+      switch (RegulMode)
+      {
+        case PARAM_TEMPERATURE:
+        ssegWriteInt(Setpoint);
+        break;
+        case PARAM_FANSPEED:
+        ssegWriteInt(FanSpeed);
+        break;
+        case PARAM_HEATPOWER:
+        ssegWriteInt(Power);
+        break;
+        case PARAM_COOLDOWN:
+        ssegWriteInt(FanSpeed);
+        break;
+      }
+      }
+      
+      display_setpoint_timeout--;
+      //Если кончилось время отображения значения уставки
+      if (display_setpoint_timeout == 0) {
+      switch (RegulMode)
+      {
+        case PARAM_TEMPERATURE:
+        eeSetpoint = Setpoint;
+        break;
+        case PARAM_FANSPEED:
+        //eeFanSpeed = FanSpeed;
+        break;
+        case PARAM_HEATPOWER:
+        //ssegWriteInt(Power);
+        break;
+        case PARAM_COOLDOWN:
+        //ssegWriteInt(FanSpeed);
+        break;
+      }
+        eeSetpoint = Setpoint;
+      }
+    }
+
 }
