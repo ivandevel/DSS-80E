@@ -99,7 +99,7 @@ void Soldering_Main(void)
   
   tSet = Setpoint;
   
-  TIM1_SetCompare1(FanSpeed);
+  FAN_SET_PWM_DUTY(FanSpeed);
   /*
   pid_s.KP = 60; //8
   pid_s.KI = 49; //22
@@ -115,7 +115,7 @@ void Soldering_Main(void)
 //    {
 //      RegulMode = PARAM_COOLDOWN;
 //      FanSpeed = 90;
-//      TIM1_SetCompare1(FanSpeed);
+//      FAN_SET_PWM_DUTY(FanSpeed);
 //      display_type_timeout = DISPLAY_SETPOINT_TIMEOUT;
 //    } 
     
@@ -154,12 +154,12 @@ void Soldering_Main(void)
       case PARAM_COOLDOWN:
         RegulMode = PARAM_TEMPERATURE;
         FanSpeed = 100;
-        TIM1_SetCompare1(FanSpeed);
+        FAN_SET_PWM_DUTY(FanSpeed);
         break;
 //      case PARAM_STANDBY:
 //        RegulMode = PARAM_TEMPERATURE;
 //        FanSpeed = 100;
-//        TIM1_SetCompare1(FanSpeed);
+//        FAN_SET_PWM_DUTY(FanSpeed);
 //        break;
       }
       display_type_timeout = DISPLAY_SETPOINT_TIMEOUT;
@@ -190,7 +190,7 @@ void Soldering_Main(void)
                                   case PARAM_COOLDOWN:
                                     FanSpeed+=5;
                                         if (FanSpeed >= 100) FanSpeed = 100;
-                                        TIM1_SetCompare1(FanSpeed); 
+                                        FAN_SET_PWM_DUTY(FanSpeed); 
                                     break;
                                   case PARAM_HEATPOWER:
                                     Power+=5;
@@ -211,7 +211,7 @@ void Soldering_Main(void)
                                   case PARAM_COOLDOWN:
                                     FanSpeed-=5;
                                         if (FanSpeed <= 50) FanSpeed = 50;
-                                        TIM1_SetCompare1(FanSpeed);
+                                        FAN_SET_PWM_DUTY(FanSpeed);
                                     break;
                                     case PARAM_HEATPOWER:
                                     Power-=5;
@@ -497,7 +497,7 @@ void HotAir_ISR (void)
         if (FanSpeed < 50)
         {
           FanSpeed = 50;
-          TIM1_SetCompare1(FanSpeed);
+          FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
         case PARAM_HEATPOWER:
@@ -505,7 +505,7 @@ void HotAir_ISR (void)
         if (FanSpeed < 50)
         {
           FanSpeed = 50;
-          TIM1_SetCompare1(FanSpeed);
+          FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
         case PARAM_COOLDOWN:
@@ -515,13 +515,13 @@ void HotAir_ISR (void)
         {
           //RegulMode = PARAM_STANDBY;
           FanSpeed = 0;
-          TIM1_SetCompare1(FanSpeed);
+          FAN_SET_PWM_DUTY(FanSpeed);
         }
         
          if  (Temperature > 45)
         {
           FanSpeed = 100;
-          TIM1_SetCompare1(FanSpeed);
+          FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
 //       case PARAM_STANDBY:
@@ -531,12 +531,12 @@ void HotAir_ISR (void)
 //        {
 //          //RegulMode = PARAM_STANDBY;
 //          FanSpeed = 0;
-//          TIM1_SetCompare1(FanSpeed);
+//          FAN_SET_PWM_DUTY(FanSpeed);
 //        }
 //        if  (Temperature > 40)
 //        {
 //          FanSpeed = 100;
-//          TIM1_SetCompare1(FanSpeed);
+//          FAN_SET_PWM_DUTY(FanSpeed);
 //        }
 //       break;
       }

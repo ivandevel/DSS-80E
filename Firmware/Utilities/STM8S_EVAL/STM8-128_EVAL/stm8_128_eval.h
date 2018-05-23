@@ -286,7 +286,7 @@ extern __IO int16_t Triac_angle;
 #define LED_B_GPIO_PIN               GPIO_PIN_4
     
 #define LED_C_GPIO_PORT              GPIOD
-#define LED_C_GPIO_PIN               GPIO_PIN_5
+#define LED_C_GPIO_PIN               GPIO_PIN_3
     
 #define LED_D_GPIO_PORT              GPIOC
 #define LED_D_GPIO_PIN               GPIO_PIN_5
@@ -297,8 +297,8 @@ extern __IO int16_t Triac_angle;
 #define LED_F_GPIO_PORT              GPIOC
 #define LED_F_GPIO_PIN               GPIO_PIN_3
     
-#define LED_G_GPIO_PORT              GPIOD
-#define LED_G_GPIO_PIN               GPIO_PIN_7
+#define LED_G_GPIO_PORT              GPIOC
+#define LED_G_GPIO_PIN               GPIO_PIN_1
     
 #define LED_H_GPIO_PORT              GPIOD
 #define LED_H_GPIO_PIN               GPIO_PIN_6
@@ -306,14 +306,11 @@ extern __IO int16_t Triac_angle;
 #define SEG1_GPIO_PORT               GPIOA
 #define SEG1_GPIO_PIN                GPIO_PIN_2
     
-#define SEG2_GPIO_PORT               GPIOF
-#define SEG2_GPIO_PIN                GPIO_PIN_4
+#define SEG2_GPIO_PORT               GPIOB
+#define SEG2_GPIO_PIN                GPIO_PIN_3
     
 #define SEG3_GPIO_PORT               GPIOC
 #define SEG3_GPIO_PIN                GPIO_PIN_7
-
-#define CONTROL_GPIO_PORT            GPIOB
-#define CONTROL_GPIO_PIN             GPIO_PIN_3
 
 #define ADC_GPIO_PORT                GPIOB
 #define ADC_GPIO_PIN                 GPIO_PIN_1
@@ -322,14 +319,14 @@ extern __IO int16_t Triac_angle;
 
 #define BUTTONn                     4
 
-#define ENC_KEY_BUTTON_PORT            GPIOB
-#define ENC_KEY_BUTTON_PIN             GPIO_PIN_3
+#define ENC_KEY_BUTTON_PORT            GPIOF
+#define ENC_KEY_BUTTON_PIN             GPIO_PIN_4
 
-#define ENC_DN_BUTTON_PORT             GPIOD
-#define ENC_DN_BUTTON_PIN              GPIO_PIN_0
+#define ENC_DN_BUTTON_PORT             GPIOB
+#define ENC_DN_BUTTON_PIN              GPIO_PIN_6
 
-#define ENC_UP_BUTTON_PORT             GPIOD
-#define ENC_UP_BUTTON_PIN              GPIO_PIN_2
+#define ENC_UP_BUTTON_PORT             GPIOB
+#define ENC_UP_BUTTON_PIN              GPIO_PIN_7
 
 /**
  * @brief EXTI push-button definition
@@ -339,8 +336,8 @@ extern __IO int16_t Triac_angle;
 #define DN_BUTTON_EXTI_PORT             EXTI_PORT_GPIOD
 #define REED_EXTI_PORT                  EXTI_PORT_GPIOB
 
-#define ZERO_EXTI_PORT                  EXTI_PORT_GPIOE
-#define ZERO_CROSS_PORT                 GPIOE
+#define ZERO_EXTI_PORT                  EXTI_PORT_GPIOD
+#define ZERO_CROSS_PORT                 GPIOD
 #define ZERO_CROSS_PIN                  GPIO_PIN_5
 
 #define TRIAC_PORT                      GPIOD
@@ -354,6 +351,8 @@ extern __IO int16_t Triac_angle;
 #define LOWER_LIMIT 0
 #define LEVEL_STEP  1
 #define RAMP_STEP   2
+
+#define FAN_SET_PWM_DUTY(X) TIM1_SetCompare4(X)
 
 //----------------------------------------------------------------------------------
 #elif SOLDERING_HAKKO_A1321
