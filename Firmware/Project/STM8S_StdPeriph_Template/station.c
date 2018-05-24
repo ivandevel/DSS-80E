@@ -187,7 +187,7 @@ void Soldering_Main(void)
                                         tSet = Setpoint; 
                                         break;
                                   case PARAM_FANSPEED:
-                                  case PARAM_COOLDOWN:
+                                  //case PARAM_COOLDOWN:
                                     FanSpeed+=5;
                                         if (FanSpeed >= 100) FanSpeed = 100;
                                         FAN_SET_PWM_DUTY(FanSpeed); 
@@ -208,7 +208,7 @@ void Soldering_Main(void)
                                         tSet = Setpoint;
                                         break;
                                   case PARAM_FANSPEED:
-                                  case PARAM_COOLDOWN:
+                                  //case PARAM_COOLDOWN:
                                     FanSpeed-=5;
                                         if (FanSpeed <= 50) FanSpeed = 50;
                                         FAN_SET_PWM_DUTY(FanSpeed);
@@ -544,12 +544,11 @@ void HotAir_ISR (void)
      tempaccum = 0;
      tempcount = 0;
      
-     if ((display_setpoint_timeout==0) && (display_type_timeout==0)) {
+     if ((!display_setpoint_timeout) && (!display_type_timeout)) {
        if (old_Temperature != Temperature) {
        ssegWriteInt(Temperature); 
        old_Temperature = Temperature;
-       }
-       
+       }      
      }
    }
   
@@ -569,7 +568,7 @@ if (display_type_timeout)
         ssegWriteStr("HEA", 3, SEG1);
         break;
         case PARAM_COOLDOWN:
-        ssegWriteStr("COL", 3, SEG1);
+        ssegWriteStr("COL", 4, SEG1);
         break;
 //        case PARAM_STANDBY:
 //        ssegWriteStr("Stb", 3, SEG1);

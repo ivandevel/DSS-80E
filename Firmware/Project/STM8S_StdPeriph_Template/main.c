@@ -182,6 +182,7 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   STM_EVAL_LEDInit(LEDE);
   STM_EVAL_LEDInit(LEDF);
   STM_EVAL_LEDInit(LEDG);
+  STM_EVAL_LEDInit(LEDP);
 
 #ifndef SOLDERING_VAR2
   //STM_EVAL_LEDInit(LEDP);
@@ -224,6 +225,8 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   
   enableInterrupts(); 
 
+  ssegWriteStr("1.0.0.", 3, SEG1);
+  
   Soldering_Main();
   
   while(1)

@@ -279,80 +279,80 @@ extern __IO int16_t Triac_angle;
 
 #define LEDn                         8
    
-#define LED_A_GPIO_PORT              GPIOA
-#define LED_A_GPIO_PIN               GPIO_PIN_1
+#define LED_A_GPIO_PORT              GPIOE
+#define LED_A_GPIO_PIN               GPIO_PIN_5
 
 #define LED_B_GPIO_PORT              GPIOC
-#define LED_B_GPIO_PIN               GPIO_PIN_4
+#define LED_B_GPIO_PIN               GPIO_PIN_5
     
-#define LED_C_GPIO_PORT              GPIOD
-#define LED_C_GPIO_PIN               GPIO_PIN_3
+#define LED_C_GPIO_PORT              GPIOB
+#define LED_C_GPIO_PIN               GPIO_PIN_2
     
 #define LED_D_GPIO_PORT              GPIOC
-#define LED_D_GPIO_PIN               GPIO_PIN_5
+#define LED_D_GPIO_PIN               GPIO_PIN_6
     
 #define LED_E_GPIO_PORT              GPIOC
-#define LED_E_GPIO_PIN               GPIO_PIN_6
+#define LED_E_GPIO_PIN               GPIO_PIN_7
     
 #define LED_F_GPIO_PORT              GPIOC
-#define LED_F_GPIO_PIN               GPIO_PIN_3
+#define LED_F_GPIO_PIN               GPIO_PIN_1
     
-#define LED_G_GPIO_PORT              GPIOC
-#define LED_G_GPIO_PIN               GPIO_PIN_1
+#define LED_G_GPIO_PORT              GPIOB
+#define LED_G_GPIO_PIN               GPIO_PIN_3
     
-#define LED_H_GPIO_PORT              GPIOD
-#define LED_H_GPIO_PIN               GPIO_PIN_6
+#define LED_H_GPIO_PORT              GPIOB
+#define LED_H_GPIO_PIN               GPIO_PIN_0
 
-#define SEG1_GPIO_PORT               GPIOA
+#define SEG1_GPIO_PORT               GPIOC
 #define SEG1_GPIO_PIN                GPIO_PIN_2
     
-#define SEG2_GPIO_PORT               GPIOB
+#define SEG2_GPIO_PORT               GPIOC
 #define SEG2_GPIO_PIN                GPIO_PIN_3
     
 #define SEG3_GPIO_PORT               GPIOC
-#define SEG3_GPIO_PIN                GPIO_PIN_7
+#define SEG3_GPIO_PIN                GPIO_PIN_4
 
 #define ADC_GPIO_PORT                GPIOB
 #define ADC_GPIO_PIN                 GPIO_PIN_1
 
 #define ADC_SOLDER_TEMP_CHANNEL      ADC1_CHANNEL_1
 
-#define BUTTONn                     4
+#define BUTTONn                      4
 
-#define ENC_KEY_BUTTON_PORT            GPIOF
-#define ENC_KEY_BUTTON_PIN             GPIO_PIN_4
+#define ENC_KEY_BUTTON_PORT          GPIOF
+#define ENC_KEY_BUTTON_PIN           GPIO_PIN_4
 
-#define ENC_DN_BUTTON_PORT             GPIOB
-#define ENC_DN_BUTTON_PIN              GPIO_PIN_6
+#define ENC_DN_BUTTON_PORT           GPIOB
+#define ENC_DN_BUTTON_PIN            GPIO_PIN_6
 
-#define ENC_UP_BUTTON_PORT             GPIOB
-#define ENC_UP_BUTTON_PIN              GPIO_PIN_7
+#define ENC_UP_BUTTON_PORT           GPIOB
+#define ENC_UP_BUTTON_PIN            GPIO_PIN_7
+
+#define REED_GPIO_PORT                GPIOD
+#define REED_GPIO_PIN                 GPIO_PIN_2
 
 /**
  * @brief EXTI push-button definition
  */
-#define KEY_BUTTON_EXTI_PORT            EXTI_PORT_GPIOD
-#define UP_BUTTON_EXTI_PORT             EXTI_PORT_GPIOD
-#define DN_BUTTON_EXTI_PORT             EXTI_PORT_GPIOD
-#define REED_EXTI_PORT                  EXTI_PORT_GPIOB
+#define KEY_BUTTON_EXTI_PORT          EXTI_PORT_GPIOD
+#define UP_BUTTON_EXTI_PORT           EXTI_PORT_GPIOD
+#define DN_BUTTON_EXTI_PORT           EXTI_PORT_GPIOD
+#define REED_EXTI_PORT                EXTI_PORT_GPIOD
 
-#define ZERO_EXTI_PORT                  EXTI_PORT_GPIOD
-#define ZERO_CROSS_PORT                 GPIOD
-#define ZERO_CROSS_PIN                  GPIO_PIN_5
+#define ZERO_EXTI_PORT                EXTI_PORT_GPIOD
+#define ZERO_CROSS_PORT               GPIOD
+#define ZERO_CROSS_PIN                GPIO_PIN_5
 
-#define TRIAC_PORT                      GPIOD
-#define TRIAC_PIN                       GPIO_PIN_4
+#define TRIAC_PORT                    GPIOD
+#define TRIAC_PIN                     GPIO_PIN_4
 
-#define REED_GPIO_PORT                  GPIOB
-#define REED_GPIO_PIN                   GPIO_PIN_0
+#define TRIAC_FIRE_WIDTH              500
+#define UPPER_LIMIT                   16500
+#define LOWER_LIMIT                   0
+#define LEVEL_STEP                    1
+#define RAMP_STEP                     2
 
-#define TRIAC_FIRE_WIDTH 500
-#define UPPER_LIMIT 16500
-#define LOWER_LIMIT 0
-#define LEVEL_STEP  1
-#define RAMP_STEP   2
-
-#define FAN_SET_PWM_DUTY(X) TIM1_SetCompare4(X)
+#define FAN_SET_PWM_DUTY(X)           TIM1_SetCompare4(X)
 
 //----------------------------------------------------------------------------------
 #elif SOLDERING_HAKKO_A1321
