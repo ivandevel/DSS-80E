@@ -274,7 +274,7 @@
 
 extern __IO int16_t Triac_angle;
     
-#define SEGMENT_POLARITY_HIGH
+#define SEGMENT_POLARITY_LOW
 #define ELEMENT_POLARITY_LOW
 
 #define LEDn                         8
@@ -323,10 +323,10 @@ extern __IO int16_t Triac_angle;
 #define ENC_KEY_BUTTON_PIN           GPIO_PIN_4
 
 #define ENC_DN_BUTTON_PORT           GPIOB
-#define ENC_DN_BUTTON_PIN            GPIO_PIN_6
+#define ENC_DN_BUTTON_PIN            GPIO_PIN_7
 
 #define ENC_UP_BUTTON_PORT           GPIOB
-#define ENC_UP_BUTTON_PIN            GPIO_PIN_7
+#define ENC_UP_BUTTON_PIN            GPIO_PIN_6
 
 #define REED_GPIO_PORT                GPIOD
 #define REED_GPIO_PIN                 GPIO_PIN_2

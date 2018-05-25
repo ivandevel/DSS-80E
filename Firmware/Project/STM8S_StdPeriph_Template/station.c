@@ -210,7 +210,7 @@ void Soldering_Main(void)
                                   case PARAM_FANSPEED:
                                   //case PARAM_COOLDOWN:
                                     FanSpeed-=5;
-                                        if (FanSpeed <= 50) FanSpeed = 50;
+                                        if (FanSpeed <= 30) FanSpeed = 30;
                                         FAN_SET_PWM_DUTY(FanSpeed);
                                     break;
                                     case PARAM_HEATPOWER:
@@ -494,17 +494,17 @@ void HotAir_ISR (void)
         tSet = Setpoint;
         Power = pid(tSet, Temperature);
         Triac_angle = Power*16;
-        if (FanSpeed < 50)
+        if (FanSpeed < 30)
         {
-          FanSpeed = 50;
+          FanSpeed = 30;
           FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
         case PARAM_HEATPOWER:
         Triac_angle = Power*16;
-        if (FanSpeed < 50)
+        if (FanSpeed < 30)
         {
-          FanSpeed = 50;
+          FanSpeed = 30;
           FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
