@@ -20,7 +20,7 @@ static const int16_t vArray[20] =
 #elif SOLDERING_VAR2
 #define OPAMP_GAIN 1 //1.0
 
-static const int16_t vArray[22] = 
+static const int16_t vArray[] = 
 {
 0, 35,  
 880, 50, 
@@ -34,7 +34,7 @@ static const int16_t vArray[22] =
 
 #elif SOLDERING_HAKKO_A1321_MINI
 #define OPAMP_GAIN 1 //1.0
-static const int16_t vArray[22] = 
+static const int16_t vArray[] = 
 {
 0, 35,  
 880, 50, 
@@ -46,8 +46,8 @@ static const int16_t vArray[22] =
 2980,  480
 };
 #elif SOLDERING_HAKKO_A1321
-#define OPAMP_GAIN 1 //1.0
-static const int16_t vArray[22] = 
+#define OPAMP_GAIN 900 //1.0
+static const int16_t vArray[] = 
 {
 0, 35,  
 880, 50, 

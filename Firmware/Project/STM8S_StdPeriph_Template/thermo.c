@@ -19,10 +19,22 @@ return 777;
 }
 
 //Calculate microvolts from OPAMP
+#pragma optimize=none
 int16_t Code2uV(int16_t adccode)
 {
   //5350 - коэффициент усилителя 535.0
   //1023 - разрешающая способность АЦП
   //510000000 - опорное напряжение АЦП 5 Вольт
   return (((uint32_t)adccode)*((5100000UL/1023UL)/OPAMP_GAIN));///1000;
+}
+
+
+//Calculate input voltage from OPAMP
+#pragma optimize=none
+int16_t Code2R(int16_t adccode)
+{
+  //5350 - коэффициент усилителя 535.0
+  //1023 - разрешающая способность АЦП
+  //510000000 - опорное напряжение АЦП 5 Вольт
+  return adccode;
 }

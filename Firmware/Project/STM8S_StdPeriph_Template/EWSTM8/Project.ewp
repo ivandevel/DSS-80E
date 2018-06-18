@@ -2908,11 +2908,11 @@
                 </option>
                 <option>
                     <name>OCOutputOverride</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>OOCOutputFile</name>
-                    <state>Project.srec</state>
+                    <state>Project.s19</state>
                 </option>
                 <option>
                     <name>OOCCommandLineProducer</name>
@@ -2920,7 +2920,7 @@
                 </option>
                 <option>
                     <name>OOCObjCopyEnable</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
             </data>
         </settings>

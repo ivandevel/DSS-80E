@@ -418,10 +418,10 @@ extern __IO int16_t Triac_angle;
 #define ENC_KEY_BUTTON_PIN             GPIO_PIN_1
 
 #define ENC_DN_BUTTON_PORT             GPIOB
-#define ENC_DN_BUTTON_PIN              GPIO_PIN_4
+#define ENC_DN_BUTTON_PIN              GPIO_PIN_5
 
 #define ENC_UP_BUTTON_PORT             GPIOB
-#define ENC_UP_BUTTON_PIN              GPIO_PIN_5
+#define ENC_UP_BUTTON_PIN              GPIO_PIN_4
 
 /**
  * @brief EXTI push-button definition

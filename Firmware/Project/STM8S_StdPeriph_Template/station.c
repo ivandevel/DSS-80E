@@ -279,7 +279,8 @@ uint16_t microvolts;
 
 void Soldering_ISR (void)
 {
-   ssegWriteStr("   ", 3, SEG1);
+   //ssegWriteStr("   ", 3, SEG1);
+   static uint16_t old_Temperature;
    
    timedivider++;
   
@@ -321,14 +322,15 @@ void Soldering_ISR (void)
 
   if (display_setpoint_timeout)
     {
+      
+      if (display_type_timeout == DISPLAY_SETPOINT_TIMEOUT) ssegWriteInt(Setpoint);
+      
       display_setpoint_timeout--;
       //Уставку - на экран
-      lcddata = &Setpoint;
+     // lcddata = &Setpoint;
       //Если кончилось время отображения значения уставки
       if (!display_setpoint_timeout) {
-        //Температуру - на экран
-        lcddata = &Temperature;
-        //lcddata = &Power;
+        ssegWriteInt(Temperature);
         eeSetpoint = Setpoint;
       }
     }
@@ -355,8 +357,9 @@ void Soldering_ISR (void)
   
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
-     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
-
+     //Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
+Temperature = Code2uV(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE)/10;
+//Temperature = tempaccum/N_MEASUREMENTS_OF_TEMPERATURE/10;
 
       switch(StbyMode)
       {
@@ -376,6 +379,13 @@ void Soldering_ISR (void)
      tempaccum = 0;
      tempcount = 0;
 
+       if ((!display_setpoint_timeout)) {
+       if (old_Temperature != Temperature) {
+       ssegWriteInt(Temperature); 
+       old_Temperature = Temperature;
+       }      
+     }
+     
    }
      
     if (timedivider == MEASURING_INTERVAL_TICKS) { //20
