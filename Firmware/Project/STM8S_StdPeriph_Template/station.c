@@ -91,6 +91,57 @@ void Soldering_ADC_Config (void)
 
 void Soldering_Main(void)
 {
+  if ((eeSetpoint > 450) || (eeSetpoint < 150)) eeSetpoint = 150;
+  
+  //Вытаскиваем значение уставки из EEPROM
+  Setpoint = eeSetpoint;
+  
+  tSet = Setpoint;
+  
+#ifdef DFS_90
+  FAN_SET_PWM_DUTY(FanSpeed);
+#endif
+
+  while(1) 
+  {  
+    //Pressing encoder button
+  if (eButtonGetEvent(BUTTON_KEY) == eButtonEventPress ) {
+      switch(StbyMode)
+      {
+      case MODE_WORKING:
+        StbyMode = MODE_POWEROFF;
+        break;
+      case MODE_STANDBY:        
+        StbyMode = MODE_WORKING;
+        break;
+      case MODE_POWEROFF:
+        StbyMode = MODE_WORKING;
+        break; 
+      }
+    }
+  
+    uint8_t state = ENC_GetStateEncoder();
+  
+  //Encoder is rotated 
+if (state != 0) {
+                          StbyMode = MODE_WORKING;
+                          
+                          display_setpoint_timeout = DISPLAY_SETPOINT_TIMEOUT;
+                          
+				if (state == RIGHT_SPIN) {
+					Setpoint+=5;
+                                        if (Setpoint >= 450) Setpoint = 450;
+				}
+				if (state == LEFT_SPIN) {
+                                        Setpoint-=5;
+                                        if (Setpoint <= 150) Setpoint = 150;
+				}
+			}  
+  }
+}
+
+void HotAir_Main(void)
+{
   
   if ((eeSetpoint > 450) || (eeSetpoint < 150)) eeSetpoint = 150;
   
@@ -100,13 +151,6 @@ void Soldering_Main(void)
   tSet = Setpoint;
   
   FAN_SET_PWM_DUTY(FanSpeed);
-  /*
-  pid_s.KP = 60; //8
-  pid_s.KI = 49; //22
-  pid_s.KD = 20; //4
-  pid_s.KT = 5; //30
-  */
-//uint8_t now_button=0;
 
   while(1) 
   {
@@ -121,22 +165,7 @@ void Soldering_Main(void)
     
     //Pressing encoder button
   if (eButtonGetEvent(BUTTON_KEY) == eButtonEventPress ) {
-#ifndef DFS_90
-      switch(StbyMode)
-      {
-      case MODE_WORKING:
-        StbyMode = MODE_POWEROFF;
-        break;
-      case MODE_STANDBY:        
-        StbyMode = MODE_WORKING;
-        break;
-      case MODE_POWEROFF:
-        StbyMode = MODE_WORKING;
-        break; 
-      }
-#endif 
-      
-#ifdef DFS_90
+
       StbyMode = MODE_WORKING;
       SecondTick = 0;
       
@@ -162,8 +191,8 @@ void Soldering_Main(void)
 //        FAN_SET_PWM_DUTY(FanSpeed);
 //        break;
       }
+      
       display_type_timeout = DISPLAY_SETPOINT_TIMEOUT;
-#endif      
       
     }
   
@@ -219,8 +248,8 @@ void Soldering_Main(void)
                                     break;
                                   }
 				}
-			}
-    
+			} 
+ 
   }
 }
 
@@ -270,13 +299,11 @@ void Soldering_ISR (void)
   
   
    if (timedivider == 1) {
-     #ifndef DFS_90
      GPIO_WriteLow(ADC_GPIO_PORT, ADC_GPIO_PIN);
      GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
      //TIM2_SetCompare3(0);
      GPIO_WriteLow(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN);
      ADC1_Cmd(ENABLE);
-     #endif
    }
    
    
@@ -288,12 +315,10 @@ void Soldering_ISR (void)
   
   
      if (timedivider == (MEASURING_INTERVAL_TICKS-Power+1)) {
-     #ifndef DFS_90
      GPIO_WriteHigh(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN);
-     #endif
    }
   
-#ifndef DFS_90
+
   if (display_setpoint_timeout)
     {
       display_setpoint_timeout--;
@@ -307,71 +332,7 @@ void Soldering_ISR (void)
         eeSetpoint = Setpoint;
       }
     }
-#endif
   
-#ifdef DFS_90 
-if (display_type_timeout)
-    {
-      display_type_timeout--;
-      //Уставку - на экран
-      switch (RegulMode)
-      {
-        case PARAM_TEMPERATURE:
-        ssegWriteStr("SEt", 3, SEG1);
-        break;
-        case PARAM_FANSPEED:
-        ssegWriteStr("FAn", 3, SEG1);
-        break;
-        case PARAM_HEATPOWER:
-        ssegWriteStr("HEA", 3, SEG1);
-        break;
-        case PARAM_COOLDOWN:
-        ssegWriteStr("COL", 3, SEG1);
-        break;
-//        case PARAM_STANDBY:
-//        ssegWriteStr("Stb", 3, SEG1);
-//        break;
-      }
-      //Если кончилось время отображения значения уставки
-      if (!display_type_timeout) {
-        //Температуру - на экран
-        lcddata = &Temperature;
-        //lcddata = &Power;
-        eeSetpoint = Setpoint;
-      }
-    }  
-  
-//While spinning encoder - show changing parameter value
-if (display_setpoint_timeout)
-    {
-      display_setpoint_timeout--;
-      //Уставку - на экран
-      switch (RegulMode)
-      {
-        case PARAM_TEMPERATURE:
-        lcddata = &Setpoint;
-        break;
-        case PARAM_FANSPEED:
-        lcddata = &FanSpeed;
-        break;
-        case PARAM_HEATPOWER:
-        lcddata = &Power;
-        break;
-        case PARAM_COOLDOWN:
-        lcddata = &FanSpeed;
-        break;
-      }
-      //Если кончилось время отображения значения уставки
-      if (!display_setpoint_timeout) {
-        //Температуру - на экран
-        lcddata = &Temperature;
-        //lcddata = &Power;
-        eeSetpoint = Setpoint;
-      }
-    }
-#endif
-
-#ifndef DFS_90  
      switch(StbyMode)
       {
       case MODE_WORKING:       
@@ -391,24 +352,12 @@ if (display_setpoint_timeout)
       ssegWriteStr("OFF", 3, SEG1);
       break; 
       }
-#endif
-  
-#ifdef DFS_90
-  if ((Temperature > 480)) {
-        ssegWriteStr("---", 3, SEG1); 
-        }
-        else
-          {
-      if (!display_type_timeout) 
-        ssegWriteInt(*lcddata); 
-          }
-#endif
   
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
      Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
 
-#ifndef DFS_90
+
       switch(StbyMode)
       {
       case MODE_WORKING:    
@@ -420,36 +369,9 @@ if (display_setpoint_timeout)
       case MODE_POWEROFF:
       tSet = 0;
       break;      
-      }
-#endif     
+      }    
       
-#ifdef DFS_90
-      switch (RegulMode)
-      {
-        case PARAM_TEMPERATURE:
-        tSet = Setpoint;
-        Power = PIDcal(tSet, Temperature);
-        Triac_angle = Power*16;
-        
-        break;
-        case PARAM_FANSPEED:
-        tSet = Setpoint;
-        Power = PIDcal(tSet, Temperature);
-        Triac_angle = Power*16;
-        break;
-        case PARAM_HEATPOWER:
-        Triac_angle = Power*16;
-        break;
-        case PARAM_COOLDOWN:
-        tSet = 0;
-        Power = 0;
-        break;
-      }
-#endif
-      
-     #ifndef DFS_90
-       Power = PIDcal(tSet, Temperature);
-    #endif
+       Power = pid(tSet, Temperature);
 
      tempaccum = 0;
      tempcount = 0;
@@ -458,18 +380,19 @@ if (display_setpoint_timeout)
      
     if (timedivider == MEASURING_INTERVAL_TICKS) { //20
      timedivider = 0;
-     #ifndef DFS_90
+
      ADC1_Cmd(DISABLE);
      GPIO_Init(ADC_GPIO_PORT, ADC_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_FAST);
      GPIO_WriteHigh(ADC_GPIO_PORT, ADC_GPIO_PIN);
-     #endif
+
    }
 }
 
+#ifdef DFS_90
 void HotAir_ISR (void)  
 {
   static uint16_t old_Temperature;
-  
+
   Triac_angle = Power*16;
   
   timedivider++;
@@ -628,3 +551,4 @@ if (display_setpoint_timeout)
     }
 
 }
+#endif

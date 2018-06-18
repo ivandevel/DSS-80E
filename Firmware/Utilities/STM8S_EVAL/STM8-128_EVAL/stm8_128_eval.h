@@ -357,7 +357,8 @@ extern __IO int16_t Triac_angle;
 //----------------------------------------------------------------------------------
 #elif SOLDERING_HAKKO_A1321
 
-#define DIGIT_POLARITY_LOW
+#define SEGMENT_POLARITY_LOW
+#define ELEMENT_POLARITY_LOW
     
 #define LEDn                         8
    

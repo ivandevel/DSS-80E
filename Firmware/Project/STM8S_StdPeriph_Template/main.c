@@ -9,7 +9,10 @@
 /* Private defines -----------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
- __IO int16_t Triac_angle = 0;
+
+#ifdef DFS_90
+__IO int16_t Triac_angle = 0;
+#endif
 
 /**
   * @brief  Configure TIM4 to generate an update interrupt each 1ms 
