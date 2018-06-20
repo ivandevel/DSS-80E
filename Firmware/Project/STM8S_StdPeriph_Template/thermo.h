@@ -33,30 +33,44 @@ static const int16_t vArray[] =
 };
 
 #elif SOLDERING_HAKKO_A1321_MINI
-#define OPAMP_GAIN 1 //1.0
+#define OPAMP_GAIN 4.7
 static const int16_t vArray[] = 
 {
-0, 35,  
-880, 50, 
-885, 100,  
-1020, 150,
-1420, 250,
-2250, 350,
-2780,  450,
-2980,  480
+40, 0,  
+70, 100, 
+79, 150,  
+90, 200,
+101, 250,
+113, 300,
+125, 350,
+138, 400,
+150, 450
 };
 #elif SOLDERING_HAKKO_A1321
-#define OPAMP_GAIN 900 //1.0
+#define OPAMP_GAIN 4.7
 static const int16_t vArray[] = 
 {
-0, 35,  
-880, 50, 
-885, 100,  
-1020, 150,
-1420, 250,
-2250, 350,
-2780,  450,
-2980,  480
+30, 0,
+40, 5,
+50,   22,
+55,   35,
+60,   77,
+65, 110,
+70,   134,
+75, 160,
+80,   192,
+85, 220,
+90,   250,
+95, 280,
+100,   310,
+105, 345,
+110,   371,
+115, 400,
+120,   433,
+130,   496,
+140,   561,
+150,   628,
+153,   648,
 };
 #elif DFS_90
 #define OPAMP_GAIN 100 //1.0
@@ -99,5 +113,6 @@ static const int16_t vArray[] =
 #endif
 
 int16_t Convert(int16_t adc_code, int16_t tcj);
-int16_t Code2uV(int16_t adccode);
+int32_t Code2uV(int16_t adccode);
+int32_t Code2Resistance(int16_t adccode);
 #endif

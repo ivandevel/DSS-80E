@@ -98,9 +98,9 @@ void Soldering_Main(void)
   
   tSet = Setpoint;
   
-#ifdef DFS_90
+  #ifdef DFS_90
   FAN_SET_PWM_DUTY(FanSpeed);
-#endif
+  #endif
 
   while(1) 
   {  
@@ -292,7 +292,7 @@ void Soldering_ISR (void)
      //SecondTick = 0;
    }     
     
-    if (SecondTick == POWEROFF_TIME_MIN * 60000UL) // 30 minutes
+  if (SecondTick == POWEROFF_TIME_MIN * 60000UL) // 30 minutes
    {
      StbyMode = MODE_POWEROFF;
      SecondTick = 0;
@@ -322,44 +322,23 @@ void Soldering_ISR (void)
 
   if (display_setpoint_timeout)
     {
-      
-      if (display_type_timeout == DISPLAY_SETPOINT_TIMEOUT) ssegWriteInt(Setpoint);
+      if (display_setpoint_timeout == DISPLAY_SETPOINT_TIMEOUT) ssegWriteInt(Setpoint);
       
       display_setpoint_timeout--;
-      //Уставку - на экран
-     // lcddata = &Setpoint;
       //Если кончилось время отображения значения уставки
       if (!display_setpoint_timeout) {
-        ssegWriteInt(Temperature);
+        
+                 if ((Temperature > 480))
+        ssegWriteStr("---", 3, SEG1); 
+         else ssegWriteInt(Temperature);
+        
         eeSetpoint = Setpoint;
       }
     }
   
-     switch(StbyMode)
-      {
-      case MODE_WORKING:       
-        if ((Temperature > 480)) {
-        ssegWriteStr("---", 3, SEG1); 
-        }
-        else
-          {
-      if (!display_type_timeout) 
-        ssegWriteInt(*lcddata); 
-          }
-      break;
-      case MODE_STANDBY:
-      ssegWriteStr("Stb", 3, SEG1);
-      break;     
-      case MODE_POWEROFF:
-      ssegWriteStr("OFF", 3, SEG1);
-      break; 
-      }
-  
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
-     //Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
-Temperature = Code2uV(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE)/10;
-//Temperature = tempaccum/N_MEASUREMENTS_OF_TEMPERATURE/10;
+     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
 
       switch(StbyMode)
       {
@@ -374,21 +353,42 @@ Temperature = Code2uV(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE)/10;
       break;      
       }    
       
-       Power = pid(tSet, Temperature);
+       Power = PIDcal(tSet, Temperature) / 20;
 
-     tempaccum = 0;
-     tempcount = 0;
+      if (Power <  0) 
+        Power = 0;
+      
+       tempaccum = 0;
+       tempcount = 0;
 
+       switch(StbyMode)
+      {
+      case MODE_WORKING:
        if ((!display_setpoint_timeout)) {
        if (old_Temperature != Temperature) {
-       ssegWriteInt(Temperature); 
+       
+         if ((Temperature > 480))
+        ssegWriteStr("---", 3, SEG1); 
+         else ssegWriteInt(Temperature);
+         
        old_Temperature = Temperature;
        }      
      }
+      break;
+      case MODE_STANDBY:
+      ssegWriteStr("Stb", 3, SEG1);
+      break;     
+      case MODE_POWEROFF:
+      ssegWriteStr("OFF", 3, SEG1);
+      break; 
+      }     
+       
+       
+
      
    }
      
-    if (timedivider == MEASURING_INTERVAL_TICKS) { //20
+    if (timedivider == MEASURING_INTERVAL_TICKS) {
      timedivider = 0;
 
      ADC1_Cmd(DISABLE);

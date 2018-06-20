@@ -230,7 +230,13 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
 
   ssegWriteStr("1.0.0.", 3, SEG1);
   
+  #ifdef DFS_90
+  HotAir_Main();
+  #endif
+  
+  #ifdef SOLDERING_HAKKO_A1321
   Soldering_Main();
+  #endif
   
   while(1)
   {
