@@ -5,6 +5,7 @@
 #define MODE_WORKING 0
 #define MODE_POWEROFF 2
 #define MODE_STANDBY 1
+#define MODE_WAIT_IRON 3
 
 #define PARAM_TEMPERATURE 0
 #define PARAM_FANSPEED 1
@@ -19,6 +20,8 @@
 #define POWEROFF_TIME_MIN 120
 
 #define DISPLAY_SETPOINT_TIMEOUT 1000
+
+#define MAX_TEMPERATURE 500
 
 void Calc_AC_Freqency(void);
 void Soldering_TIM2_Config(void);

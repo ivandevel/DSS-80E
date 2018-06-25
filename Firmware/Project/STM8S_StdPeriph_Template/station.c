@@ -20,7 +20,8 @@ extern uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
 static int16_t Power = 0;  
 static uint32_t SecondTick = 0;
 static uint16_t Setpoint=0;
-static volatile uint16_t *lcddata;
+static int16_t iron_wait_timeout=2000;
+//static volatile uint16_t *lcddata;
 static uint8_t StbyMode=MODE_WORKING;
 
 static uint8_t RegulMode = 0;
@@ -277,6 +278,7 @@ return Xe;
 uint8_t tempcount = 0;
 uint16_t microvolts;
 
+#ifndef DFS_90
 void Soldering_ISR (void)
 {
    //ssegWriteStr("   ", 3, SEG1);
@@ -328,7 +330,7 @@ void Soldering_ISR (void)
       //≈сли кончилось врем€ отображени€ значени€ уставки
       if (!display_setpoint_timeout) {
         
-                 if ((Temperature > 480))
+        if ((Temperature > MAX_TEMPERATURE))
         ssegWriteStr("---", 3, SEG1); 
          else ssegWriteInt(Temperature);
         
@@ -338,7 +340,7 @@ void Soldering_ISR (void)
   
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
-     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1));//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
+     Temperature = Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1)) + 20;//Convert(tempaccum/3,1);//kalman_get_x(Convert(tempaccum/3,1));     
 
       switch(StbyMode)
       {
@@ -348,6 +350,7 @@ void Soldering_ISR (void)
       case MODE_STANDBY:
       tSet = Setpoint/2;
       break;
+      case MODE_WAIT_IRON:
       case MODE_POWEROFF:
       tSet = 0;
       break;      
@@ -367,20 +370,44 @@ void Soldering_ISR (void)
        if ((!display_setpoint_timeout)) {
        if (old_Temperature != Temperature) {
        
-         if ((Temperature > 480))
-        ssegWriteStr("---", 3, SEG1); 
-         else ssegWriteInt(Temperature);
+         if ((Temperature > MAX_TEMPERATURE)) 
+         {
+           ssegWriteStr("---", 3, SEG1); 
+           StbyMode = MODE_WAIT_IRON;
+         }
+         else 
+         {
+           ssegWriteInt(Temperature);
+         }
          
        old_Temperature = Temperature;
-       }      
+       }
      }
       break;
-      case MODE_STANDBY:
-      ssegWriteStr("Stb", 3, SEG1);
+      case MODE_STANDBY:        
+        ssegWriteStr("Stb", 3, SEG1);      
       break;     
       case MODE_POWEROFF:
       ssegWriteStr("OFF", 3, SEG1);
       break; 
+      
+      case MODE_WAIT_IRON:
+      //if (old_Temperature != Temperature) {
+      if ((Temperature > MAX_TEMPERATURE)) {
+        iron_wait_timeout = 20;
+        ssegWriteStr("---", 3, SEG1);
+      }
+      else
+      {
+        iron_wait_timeout --;
+        ssegWriteInt(Temperature);
+      }
+      //old_Temperature = Temperature;
+      //}
+      
+      if (iron_wait_timeout == 0) StbyMode = MODE_WORKING;
+      
+      break;
       }     
        
        
@@ -397,6 +424,7 @@ void Soldering_ISR (void)
 
    }
 }
+#endif
 
 #ifdef DFS_90
 void HotAir_ISR (void)  
