@@ -29,4 +29,5 @@ void Soldering_ADC_Config(void);
 void Soldering_Main(void);
 void Soldering_ISR(void);
 void HotAir_ISR (void);
+void HotAir_Main(void);
 #endif

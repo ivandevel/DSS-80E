@@ -10,6 +10,9 @@
 #pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS 
 __no_init volatile uint16_t eeSetpoint;
 
+#pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS+2
+__no_init volatile uint16_t eeFanSpeed;
+
 static uint32_t tempaccum;
 static uint16_t timedivider;
 static volatile uint16_t display_setpoint_timeout=DISPLAY_SETPOINT_TIMEOUT;
@@ -18,14 +21,13 @@ static uint16_t Temperature = 0;
 static uint16_t tSet = 0;
 extern uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
 static int16_t Power = 0;  
-static uint32_t SecondTick = 0;
 static uint16_t Setpoint=0;
-static int16_t iron_wait_timeout=2000;
-//static volatile uint16_t *lcddata;
 static uint8_t StbyMode=MODE_WORKING;
-
 static uint8_t RegulMode = 0;
 static uint16_t FanSpeed = 100;
+
+static uint32_t SecondTick = 0;
+static int16_t iron_wait_timeout=2000;
 
 #ifdef DFS_90
 
@@ -96,7 +98,7 @@ void Soldering_Main(void)
   
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
-  
+ 
   tSet = Setpoint;
   
   #ifdef DFS_90
@@ -145,10 +147,12 @@ void HotAir_Main(void)
 {
   
   if ((eeSetpoint > 450) || (eeSetpoint < 150)) eeSetpoint = 150;
+  if ((eeFanSpeed > 100) || (eeFanSpeed < 10)) eeFanSpeed = 100;
   
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
-  
+  FanSpeed = eeFanSpeed;
+    
   tSet = Setpoint;
   
   FAN_SET_PWM_DUTY(FanSpeed);
@@ -174,16 +178,20 @@ void HotAir_Main(void)
       {
       case PARAM_TEMPERATURE:
         RegulMode = PARAM_FANSPEED;
+        FanSpeed = eeFanSpeed;
+        FAN_SET_PWM_DUTY(FanSpeed);
         break;
-      case PARAM_FANSPEED:        
+      case PARAM_FANSPEED:
         RegulMode = PARAM_COOLDOWN;
+        //FanSpeed = eeFanSpeed;
+        //FAN_SET_PWM_DUTY(FanSpeed);
         break;
       case PARAM_HEATPOWER:
         RegulMode = PARAM_COOLDOWN;
         break;
       case PARAM_COOLDOWN:
         RegulMode = PARAM_TEMPERATURE;
-        FanSpeed = 100;
+        FanSpeed = eeFanSpeed;
         FAN_SET_PWM_DUTY(FanSpeed);
         break;
 //      case PARAM_STANDBY:
@@ -240,7 +248,7 @@ void HotAir_Main(void)
                                   case PARAM_FANSPEED:
                                   //case PARAM_COOLDOWN:
                                     FanSpeed-=5;
-                                        if (FanSpeed <= 30) FanSpeed = 30;
+                                        if (FanSpeed <= 20) FanSpeed = 20;
                                         FAN_SET_PWM_DUTY(FanSpeed);
                                     break;
                                     case PARAM_HEATPOWER:
@@ -431,7 +439,7 @@ void HotAir_ISR (void)
 {
   static uint16_t old_Temperature;
 
-  Triac_angle = Power*16;
+  //Triac_angle = Power*16;
   
   timedivider++;
    
@@ -453,25 +461,30 @@ void HotAir_ISR (void)
         case PARAM_TEMPERATURE:
         case PARAM_FANSPEED:
         tSet = Setpoint;
-        Power = pid(tSet, Temperature);
+        Power = PIDcal(tSet, Temperature);
+        
+        if (Temperature > 450) Power = 0;
+        
         Triac_angle = Power*16;
-        if (FanSpeed < 30)
+        if (FanSpeed < 10)
         {
-          FanSpeed = 30;
+          FanSpeed = 10;
           FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
         case PARAM_HEATPOWER:
+        if (Temperature > 450) Power = 0;
         Triac_angle = Power*16;
-        if (FanSpeed < 30)
+        if (FanSpeed < 10)
         {
-          FanSpeed = 30;
+          FanSpeed = 10;
           FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
         case PARAM_COOLDOWN:
         tSet = 0;
         Power = 0;
+        Triac_angle = Power*16;
         if  (Temperature < 32)
         {
           //RegulMode = PARAM_STANDBY;
@@ -481,8 +494,8 @@ void HotAir_ISR (void)
         
          if  (Temperature > 45)
         {
-          FanSpeed = 100;
-          FAN_SET_PWM_DUTY(FanSpeed);
+          //FanSpeed = 100;
+          FAN_SET_PWM_DUTY(100);
         }
         break;
 //       case PARAM_STANDBY:
@@ -585,6 +598,7 @@ if (display_setpoint_timeout)
         break;
       }
         eeSetpoint = Setpoint;
+        eeFanSpeed = FanSpeed;
       }
     }
 

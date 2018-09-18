@@ -228,7 +228,7 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   
   enableInterrupts(); 
 
-  ssegWriteStr("1.0.0.", 3, SEG1);
+  ssegWriteStr("1.0.1", 5, SEG1);
   
   #ifdef DFS_90
   HotAir_Main();

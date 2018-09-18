@@ -9,9 +9,9 @@
 
 #define POW_MAX 1000
 #define POW_MIN 0
-#define PidH_Kp   20  
-#define PidH_Ki   22  
-#define PidH_Kd   20  
+#define PidH_Kp   90  
+#define PidH_Ki   92  
+#define PidH_Kd   90  
 #define TSAMPLE   100
 
 #else

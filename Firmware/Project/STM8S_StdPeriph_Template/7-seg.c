@@ -14,7 +14,7 @@ void WriteDigit(char digit);
 #define DEFAULT_BRIGHTNESS_PERCENT	100
 
 /* We can assign a 7-seg symbol code to any ASCII symbol */
-//#pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS+2
+#pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS+4
 static const char charmap[128] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	//		0...7
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	//		8...15
