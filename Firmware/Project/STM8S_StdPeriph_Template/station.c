@@ -147,7 +147,7 @@ void HotAir_Main(void)
 {
   
   if ((eeSetpoint > 450) || (eeSetpoint < 150)) eeSetpoint = 150;
-  if ((eeFanSpeed > 100) || (eeFanSpeed < 10)) eeFanSpeed = 100;
+  if ((eeFanSpeed > 100) || (eeFanSpeed < FANSPEED_MIN)) eeFanSpeed = 100;
   
   //Вытаскиваем значение уставки из EEPROM
   Setpoint = eeSetpoint;
@@ -248,7 +248,7 @@ void HotAir_Main(void)
                                   case PARAM_FANSPEED:
                                   //case PARAM_COOLDOWN:
                                     FanSpeed-=5;
-                                        if (FanSpeed <= 20) FanSpeed = 20;
+                                        if (FanSpeed <= FANSPEED_MIN) FanSpeed = FANSPEED_MIN;
                                         FAN_SET_PWM_DUTY(FanSpeed);
                                     break;
                                     case PARAM_HEATPOWER:
@@ -466,18 +466,18 @@ void HotAir_ISR (void)
         if (Temperature > 450) Power = 0;
         
         Triac_angle = Power*16;
-        if (FanSpeed < 10)
+        if (FanSpeed < FANSPEED_MIN)
         {
-          FanSpeed = 10;
+          FanSpeed = FANSPEED_MIN;
           FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
         case PARAM_HEATPOWER:
         if (Temperature > 450) Power = 0;
         Triac_angle = Power*16;
-        if (FanSpeed < 10)
+        if (FanSpeed < FANSPEED_MIN)
         {
-          FanSpeed = 10;
+          FanSpeed = FANSPEED_MIN;
           FAN_SET_PWM_DUTY(FanSpeed);
         }
         break;
