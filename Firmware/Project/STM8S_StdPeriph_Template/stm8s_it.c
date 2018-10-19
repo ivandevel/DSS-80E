@@ -149,12 +149,7 @@ INTERRUPT_HANDLER(EXTI_PORTD_IRQHandler, 6)
      it is recommended to set a breakpoint on the following instruction.
   */
 #ifdef DFS_90
-  TIM2_SetCounter(2000 + Triac_angle);
-  //monitor the level value 
-  if (Triac_angle == LOWER_LIMIT)
-    TIM2_SetCompare1(0);
-  else 
-    TIM2_SetCompare1(TRIAC_FIRE_WIDTH);
+  TriacAngle_ISR();
 #endif
 }
 

@@ -1,7 +1,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm8s.h"
 #include "stm8s_eval.h"
-#include "station.h"    
+#include "thermo.h" 
+#include "station.h"
+#include "hotair.h"
 #include "7-seg.h"
 #include "button.h"
 #include "pid.h"
@@ -9,10 +11,6 @@
 /* Private defines -----------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-
-#ifdef DFS_90
-__IO int16_t Triac_angle = 0;
-#endif
 
 /**
   * @brief  Configure TIM4 to generate an update interrupt each 1ms 
@@ -42,15 +40,6 @@ static void TIM4_Config(void)
 
   /* Enable TIM4 */
   TIM4_Cmd(ENABLE);
-}
-
-uint16_t GetAdcValue(ADC1_Channel_TypeDef channel)
-{
-  ADC1_ConversionConfig(ADC1_CONVERSIONMODE_SINGLE, channel, ADC1_ALIGN_RIGHT);
-  ADC1_StartConversion();
-  while(ADC1_GetFlagStatus(ADC1_FLAG_EOC) == RESET);
-  ADC1_ClearFlag(ADC1_FLAG_EOC);
-  return ADC1_GetConversionValue();
 }
 
 void FLASH_Config(void)
@@ -108,63 +97,7 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   TIM4_Config(); 
 
 #ifdef DFS_90
-/* Initialize I/Os in Output Mode */
-  GPIO_Init(TRIAC_PORT, (GPIO_Pin_TypeDef)TRIAC_PIN, GPIO_MODE_OUT_PP_LOW_FAST);  
-  GPIO_Init(ZERO_CROSS_PORT, ZERO_CROSS_PIN, GPIO_MODE_IN_PU_IT);
-  
-/* Initialize ext. interrput pin for zero cross deccation  */
-  EXTI_SetExtIntSensitivity(ZERO_EXTI_PORT, EXTI_SENSITIVITY_RISE_ONLY);
-  //  EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOC, EXTI_SENSITIVITY_FALL_ONLY);
-  EXTI_SetTLISensitivity(EXTI_TLISENSITIVITY_RISE_ONLY); 
-  
-//---------------------------------------------------  
-  /* Configure TIMER2 for AC dimming */
-  TIM2_DeInit();
-  TIM2_TimeBaseInit(TIM2_PRESCALER_8, 20000);
-  TIM2_OC1Init(TIM2_OCMODE_PWM1,TIM2_OUTPUTSTATE_ENABLE,0,TIM2_OCPOLARITY_HIGH);
-  
-  /*        
-  TIM2_OC2Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 5, TIM2_OCPOLARITY_HIGH);
-  TIM2_OC2PreloadConfig(ENABLE);
-  */
-  
-  TIM2_ARRPreloadConfig(ENABLE);
-  
-  TIM2_Cmd(ENABLE);
-  //Delayms(1);
-  //Calc_AC_Freqency();
-
-//---------------------------------------------------  
- /* Time base configuration */      
-   TIM1_TimeBaseInit(1, TIM1_COUNTERMODE_UP, 99, 0);
-
-  /* Output Compare Active Mode configuration: Channel1 */
-  /*
-    TIM2_OCMode = TIM2_OCMODE_ACTIVE
-    TIM2_OutputState = TIM2_OUTPUTSTATE_ENABLE
-    TIM2_Pulse = CCR1_Val
-    TIM2_OCPolarity = TIM2_OCPOLARITY_HIGH
-  */
-//  TIM1_OC4Init(TIM1_OCMODE_PWM1, TIM1_OUTPUTSTATE_ENABLE, TIM1_OUTPUTNSTATE_DISABLE,
-//               0, TIM1_OCPOLARITY_HIGH, TIM1_OCNPOLARITY_LOW, 
-//               TIM1_OCIDLESTATE_RESET, TIM1_OCNIDLESTATE_RESET);           
-  
-  TIM1_OC4Init(TIM1_OCMODE_PWM1, TIM1_OUTPUTSTATE_ENABLE, 
-               0, TIM1_OCPOLARITY_HIGH,  
-               TIM1_OCIDLESTATE_RESET);
-   
-  TIM1_OC4PreloadConfig(ENABLE);
-
-  TIM1_ARRPreloadConfig(ENABLE);
-  
-  TIM1_CtrlPWMOutputs(ENABLE);
-  
-  /* TIM1 enable counter */
-  TIM1_Cmd(ENABLE); 
-  
-  //reed input
-  GPIO_Init(REED_GPIO_PORT, REED_GPIO_PIN, GPIO_MODE_IN_PU_NO_IT);
-//---------------------------------------------------  
+HotAir_Config();
   
 #endif
   
@@ -172,7 +105,7 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
   GPIO_Init(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN, GPIO_MODE_OUT_PP_LOW_FAST);
 #endif
   
-  Soldering_ADC_Config();  
+  Temperature_ADC_Config();  
   
   STM_EVAL_SEGInit(SEG1);
   STM_EVAL_SEGInit(SEG2);

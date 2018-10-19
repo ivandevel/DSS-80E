@@ -111,8 +111,11 @@ static const int16_t vArray[] =
 #else
  #error "Please select first the STM8S SOLDERING board to be used (in stm8s_eval.h)"
 #endif
-
-int16_t Convert(int16_t adc_code, int16_t tcj);
-int32_t Code2uV(int16_t adccode);
-int32_t Code2Resistance(int16_t adccode);
+uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
+void Temperature_ADC_Config(void);
+static int16_t Convert(int16_t adc_code, int16_t tcj);
+static int32_t Code2uV(int16_t adccode);
+static int32_t Code2Resistance(int16_t adccode);
+static int32_t Kalman(int32_t voltage);
+int16_t Get_Temperature_Filtered(uint32_t adc_raw);
 #endif

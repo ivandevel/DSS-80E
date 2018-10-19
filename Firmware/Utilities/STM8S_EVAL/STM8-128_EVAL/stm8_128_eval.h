@@ -271,8 +271,6 @@
 
 //----------------------------------------------------------------------------------
 #elif DFS_90
-
-extern __IO int16_t Triac_angle;
     
 #define SEGMENT_POLARITY_LOW
 #define ELEMENT_POLARITY_LOW

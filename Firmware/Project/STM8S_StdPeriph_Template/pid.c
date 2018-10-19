@@ -53,22 +53,25 @@ int16_t pid(uint16_t ref, int16_t inp)
 
 
 //Define parameter
-#define epsilon 5
-#define dt 3             //100ms loop time
+#define epsilon 2
+#define dt 100           //100ms loop time
 #define MAX  1000        //For Current Saturation
 #define MIN 0
-#define Kp  25
-#define Ki  5
-#define Kd  20
+#define Kp  8
+#define Ki  63
+#define Kd  90
 
+//Kp = 0.6 * Ku
+//Ki = 2 * Kp / Tu
+//Kd = Kp * Tu / 8
 
 int32_t PIDcal(int32_t setpoint, int32_t actual_position)
 {
 	static int32_t pre_error = 0;
 	static int32_t integral = 0;
-	int32_t error;
-	int32_t derivative;
-	int32_t output;
+	static int32_t error;
+	static int32_t derivative;
+	static int32_t output;
 
 	//Caculate P,I,D
 	error = setpoint - actual_position;

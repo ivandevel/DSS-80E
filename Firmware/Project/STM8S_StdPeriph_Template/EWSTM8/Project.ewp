@@ -4210,6 +4210,12 @@
             <name>$PROJ_DIR$\..\button.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\eeprom.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\hotair.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\main.c</name>
         </file>
         <file>
@@ -4217,6 +4223,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\station.c</name>
+            <excluded>
+                <configuration>DFS-90</configuration>
+            </excluded>
         </file>
         <file>
             <name>$PROJ_DIR$\..\stm8s_it.c</name>

@@ -1,5 +1,5 @@
-#ifndef __STATION_H__
-#define __STATION_H__
+#ifndef __HOTAIR_H__
+#define __HOTAIR_H__
 #include "stm8s_eval.h"
 
 #define MODE_WORKING 0
@@ -19,14 +19,16 @@
 #define STANDBY_TIME_MIN 60
 #define POWEROFF_TIME_MIN 120
 
-
+#define FANSPEED_MIN 25
 
 #define DISPLAY_SETPOINT_TIMEOUT 1000
 
 #define MAX_TEMPERATURE 500
 
+void HotAir_Config(void);
 void Calc_AC_Freqency(void);
 void Soldering_TIM2_Config(void);
+void Soldering_ADC_Config(void);
 void Soldering_Main(void);
 void Soldering_ISR(void);
 void HotAir_ISR (void);
