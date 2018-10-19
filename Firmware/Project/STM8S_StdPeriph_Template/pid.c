@@ -1,9 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "pid.h"
-#include <math.h>
 #include <inttypes.h>
+
 
 #ifdef DFS_90
 
@@ -54,12 +55,12 @@ int16_t pid(uint16_t ref, int16_t inp)
 
 //Define parameter
 #define epsilon 2
-#define dt 100           //100ms loop time
+#define dt 200           //100ms loop time
 #define MAX  1000        //For Current Saturation
 #define MIN 0
-#define Kp  8
-#define Ki  63
-#define Kd  90
+#define Kp  11
+#define Ki  83
+#define Kd  120
 
 //Kp = 0.6 * Ku
 //Ki = 2 * Kp / Tu

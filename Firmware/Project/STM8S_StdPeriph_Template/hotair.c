@@ -21,6 +21,7 @@ static uint16_t Setpoint = 0;
 static uint8_t  RegulMode = 0;
 static uint16_t FanSpeed = 100;
 static uint8_t  tempcount = 0;
+static uint16_t old_Temperature = 0;
 
 void HotAir_Config(void)
 {
@@ -92,10 +93,10 @@ TIM2_SetCounter(2000 + Triac_angle);
   else 
     TIM2_SetCompare1(TRIAC_FIRE_WIDTH);
 }
-#pragma optimize=none
+//#pragma optimize=none
 void HotAir_ISR (void)  
 {
-  static uint16_t old_Temperature;
+  
   
   timedivider++;
    
@@ -176,12 +177,12 @@ void HotAir_ISR (void)
      tempaccum = 0;
      tempcount = 0;
      
-     if ((!display_setpoint_timeout) && (!display_type_timeout)) {
-       if (old_Temperature != Temperature) {
-       ssegWriteInt(Temperature); 
-       old_Temperature = Temperature;
-       }      
-     }
+//     if ((!display_setpoint_timeout) && (!display_type_timeout)) {
+//       if (old_Temperature != Temperature) {
+//       ssegWriteInt(Temperature); 
+//       old_Temperature = Temperature;
+//       }      
+//     }
    }
   
 if (display_type_timeout)
@@ -273,6 +274,13 @@ void HotAir_Main(void)
 
   while(1) 
   {
+     if ((!display_setpoint_timeout) && (!display_type_timeout)) {
+       if (old_Temperature != Temperature) {
+       ssegWriteInt(Temperature); 
+       old_Temperature = Temperature;
+       }      
+     }
+    
     
 //   if (eButtonGetEvent(BUTTON_REED) == eButtonEventHold)
 //    {

@@ -173,8 +173,8 @@ Led_TypeDef Led;
 }
 
 void ssegWriteStr(char *str, uint8_t len, Seg_TypeDef seg) {
-uint8_t i;
-char newchar;
+static uint8_t i;
+static char newchar;
 	assert_param(IS_SSEG(seg));
 	for ( i=0; i<len; i++, seg++ ) {
 		if ( seg == SEGn )
@@ -188,8 +188,8 @@ char newchar;
 	}
 }
 
- /* reverse:  переворачиваем строку s на месте */
- void reverse(char s[])
+ /* reverse:  переворачиваем строку s на месте */ 
+void reverse(char s[])
  {
      int i, j;
      char c;
@@ -218,24 +218,72 @@ void itoa(int n, char * s)
      
  }
 
-void ssegWriteInt(uint16_t value) {
-  ssegClear();
- static char buf[3];
-  
- memset(buf, 0x00, sizeof(buf));
-  
- itoa(value, buf);
-  
- reverse(buf);
+char* itoa2(int i, char b[]){
+    char const digit[] = "0123456789";
+    char* p = b;
+    if(i<0){
+        *p++ = '-';
+        i *= -1;
+    }
+    int shifter = i;
+    do{ //Move to where representation ends
+        ++p;
+        shifter = shifter/10;
+    }while(shifter);
+    *p = '\0';
+    do{ //Move back, inserting digits as u go
+        *--p = digit[i%10];
+        i = i/10;
+    }while(i);
+    return b;
+}
 
+#pragma optimize=speed
+void tostring(char * str, int16_t num)
+{
+    int16_t i, rem, len = 0, n;
+ 
+    n = num;
+    while (n != 0)
+    {
+        len++;
+        n /= 10;
+    }
+    for (i = 0; i < len; i++)
+    {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+}
+
+static char buf[3];
+void ssegWriteInt(uint16_t value) 
+{
+ 
+  ssegClear();
+ 
+  memset(buf, 0x00, sizeof(buf));
+  
+ //itoa(value, buf);
+  
+  //itoa2(value, buf);
+  
+ //reverse(buf);
+  
+  //sprintf(buf,"%u", value);
+  
+  tostring(buf, value);
+  
   if (value < 10) 
   ssegWriteStr(buf, 3, SEG3);
   else if (value <= 99)  
    ssegWriteStr(buf, 3, SEG2);  
   else if (value > 99) 
     ssegWriteStr(buf, 3, SEG1);
-}
 
+}
 
 void ssegClear(void) {
 uint8_t i;

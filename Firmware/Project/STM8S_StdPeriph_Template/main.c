@@ -93,8 +93,8 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
 }
   */
   
-  //General purpose timer
-  TIM4_Config(); 
+//General purpose timer
+TIM4_Config(); 
 
 #ifdef DFS_90
 HotAir_Config();
