@@ -7,6 +7,15 @@
 #include "button.h"
 #include "thermo.h"
 #include "eeprom.h"
+#include "pid.h"
+
+#define K_P     2.00
+//! \xrefitem todo "Todo" "Todo list"
+#define K_I     2.00
+//! \xrefitem todo "Todo" "Todo list"
+#define K_D     2.00
+
+struct PID_DATA pidData;
 
 static __IO int16_t Triac_angle = 0;
 static uint32_t tempaccum;
@@ -16,7 +25,7 @@ static volatile uint16_t display_type_timeout=DISPLAY_SETPOINT_TIMEOUT;
 static uint16_t Temperature = 0;
 static uint16_t tSet = 0;
 extern uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
-static int16_t  Power = 0;  
+static int16_t  Power = 0;
 static uint16_t Setpoint = 0;
 static uint8_t  RegulMode = 0;
 static uint16_t FanSpeed = 100;
@@ -32,7 +41,7 @@ void HotAir_Config(void)
 /* Initialize ext. interrput pin for zero cross deccation  */
   EXTI_SetExtIntSensitivity(ZERO_EXTI_PORT, EXTI_SENSITIVITY_RISE_ONLY);
   //  EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOC, EXTI_SENSITIVITY_FALL_ONLY);
-  EXTI_SetTLISensitivity(EXTI_TLISENSITIVITY_RISE_ONLY); 
+  //EXTI_SetTLISensitivity(EXTI_TLISENSITIVITY_RISE_ONLY); 
   
 //---------------------------------------------------  
   /* Configure TIMER2 for AC dimming */
@@ -82,6 +91,8 @@ void HotAir_Config(void)
   //reed input
   GPIO_Init(REED_GPIO_PORT, REED_GPIO_PIN, GPIO_MODE_IN_PU_NO_IT);
 //---------------------------------------------------  
+  
+  pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR , K_D * SCALING_FACTOR , &pidData);
 }
 
 void TriacAngle_ISR (void) 
@@ -96,8 +107,6 @@ TIM2_SetCounter(2000 + Triac_angle);
 //#pragma optimize=none
 void HotAir_ISR (void)  
 {
-  
-  
   timedivider++;
    
    if (timedivider == 2) {
@@ -118,9 +127,10 @@ void HotAir_ISR (void)
         case PARAM_TEMPERATURE:
         case PARAM_FANSPEED:
         tSet = Setpoint;
-        Power = PIDcal(tSet, Temperature);
+        //Power = pid(tSet, Temperature);
+        Power = pid_Controller(tSet, Temperature, &pidData);
         if (Temperature > 450) Power = 0;   
-        Triac_angle = Power*16;
+        Triac_angle = Power/2;
         if (FanSpeed < FANSPEED_MIN)
         {
           FanSpeed = FANSPEED_MIN;
@@ -233,7 +243,7 @@ if (display_setpoint_timeout)
         ssegWriteInt(Power);
         break;
         case PARAM_COOLDOWN:
-        ssegWriteInt(FanSpeed);
+        ssegWriteInt(100);
         break;
       }
       }

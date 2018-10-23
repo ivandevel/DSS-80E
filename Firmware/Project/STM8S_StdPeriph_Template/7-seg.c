@@ -238,7 +238,7 @@ char* itoa2(int i, char b[]){
     return b;
 }
 
-#pragma optimize=speed
+//#pragma optimize=none
 void tostring(char * str, int16_t num)
 {
     int16_t i, rem, len = 0, n;
@@ -258,7 +258,8 @@ void tostring(char * str, int16_t num)
     str[len] = '\0';
 }
 
-static char buf[3];
+static char buf[4]; //4 bytes for "\0" symbol
+
 void ssegWriteInt(uint16_t value) 
 {
  

@@ -75,6 +75,7 @@ static const int16_t vArray[] =
 #elif DFS_90
 #define OPAMP_GAIN 100 //1.0
 
+#pragma location=FLASH_DATA_START_PHYSICAL_ADDRESS+4+128
 static const int16_t vArray[] = 
 {
 397, 10,

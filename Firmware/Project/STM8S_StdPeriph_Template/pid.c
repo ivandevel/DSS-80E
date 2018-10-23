@@ -1,102 +1,114 @@
+/*This file has been prepared for Doxygen automatic documentation generation.*/
+/*! \file *********************************************************************
+ *
+ * \brief General PID implementation for AVR.
+ *
+ * Discrete PID controller implementation. Set up by giving P/I/D terms
+ * to Init_PID(), and uses a struct PID_DATA to store internal values.
+ *
+ * - File:               pid.c
+ * - Compiler:           IAR EWAAVR 4.11A
+ * - Supported devices:  All AVR devices can be used.
+ * - AppNote:            AVR221 - Discrete PID controller
+ *
+ * \author               Atmel Corporation: http://www.atmel.com \n
+ *                       Support email: avr@atmel.com
+ *
+ * $Name$
+ * $Revision: 456 $
+ * $RCSfile$
+ * $Date: 2006-02-16 12:46:13 +0100 (to, 16 feb 2006) $
+ *****************************************************************************/
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 #include "pid.h"
-#include <inttypes.h>
 
-
-#ifdef DFS_90
-
-#define POW_MAX 1000
-#define POW_MIN 0
-#define PidH_Kp   90  
-#define PidH_Ki   92  
-#define PidH_Kd   90  
-#define TSAMPLE   100
-
-#else
-
-#define POW_MAX 1000L
-#define POW_MIN 20L
-#define PidH_Kp   20  
-#define PidH_Ki   22  
-#define PidH_Kd   20  
-#define TSAMPLE   50
-
-#endif
-
-#pragma optimize=none
-int16_t pid(uint16_t ref, int16_t inp)
+/*! \brief Initialisation of PID controller parameters.
+ *
+ *  Initialise the variables used by the PID algorithm.
+ *
+ *  \param p_factor  Proportional term.
+ *  \param i_factor  Integral term.
+ *  \param d_factor  Derivate term.
+ *  \param pid  Struct with PID status.
+ */
+void pid_Init(int16_t p_factor, int16_t i_factor, int16_t d_factor, struct PID_DATA *pid)
+// Set up PID controller parameters
 {
-  static int Xp = 0;  //предыдущее значение inp
-  static int Xpp = 0; //пред-предыдущее значение inp
-  static long Y = 0;
-  //вычисление ошибки:
-  int e = ref - inp;
-  //учет пропорциональной составл€ющей:
-  Y = Y - (long)PidH_Kp * (inp - Xp) * 10;
-  //учет интегральной составл€ющей:
-  Y = Y + (long)PidH_Ki * e * TSAMPLE / 100;
-  //учет дифференциальной составл€ющей:
-  Y = Y - (long)PidH_Kd * (inp - 2 * Xp + Xpp) * 500 / TSAMPLE;
-  //обновление значений:
-  Xpp = Xp; Xp = inp;
-  if(!ref) Y = 0;
-  //if(!PidH_En) Y = (long)out << 8;
-  //ограничение выходного значени€:
-	if(Y > POW_MAX * 256L) 
-          Y = POW_MAX * 256L;
-	if(Y < POW_MIN * 256L) 
-          Y = POW_MIN * 256L;
-	return(Y >> 8);
+  // Start values for PID controller
+  pid->sumError = 0;
+  pid->lastProcessValue = 0;
+  // Tuning constants for PID loop
+  pid->P_Factor = p_factor;
+  pid->I_Factor = i_factor;
+  pid->D_Factor = d_factor;
+  // Limits to avoid overflow
+  pid->maxError = MAX_INT / (pid->P_Factor + 1);
+  pid->maxSumError = MAX_I_TERM / (pid->I_Factor + 1);
 }
 
 
-//Define parameter
-#define epsilon 2
-#define dt 200           //100ms loop time
-#define MAX  1000        //For Current Saturation
-#define MIN 0
-#define Kp  11
-#define Ki  83
-#define Kd  120
-
-//Kp = 0.6 * Ku
-//Ki = 2 * Kp / Tu
-//Kd = Kp * Tu / 8
-
-int32_t PIDcal(int32_t setpoint, int32_t actual_position)
+/*! \brief PID control algorithm.
+ *
+ *  Calculates output from setpoint, process value and PID status.
+ *
+ *  \param setPoint  Desired value.
+ *  \param processValue  Measured value.
+ *  \param pid_st  PID status struct.
+ */
+int16_t pid_Controller(int16_t setPoint, int16_t processValue, struct PID_DATA *pid_st)
 {
-	static int32_t pre_error = 0;
-	static int32_t integral = 0;
-	static int32_t error;
-	static int32_t derivative;
-	static int32_t output;
+  int16_t error, p_term, d_term;
+  int32_t i_term, ret, temp;
 
-	//Caculate P,I,D
-	error = setpoint - actual_position;
+  error = setPoint - processValue;
 
-	//In case of error too small then stop intergration
-	if(abs(error) > epsilon)
-	{
-		integral = integral + error/dt;
-	}
-	derivative = (error - pre_error)/dt;
-	output = Kp*error + Ki*integral + Kd*derivative;
+  // Calculate Pterm and limit error overflow
+  if (error > pid_st->maxError){
+    p_term = MAX_INT;
+  }
+  else if (error < -pid_st->maxError){
+    p_term = -MAX_INT;
+  }
+  else{
+    p_term = pid_st->P_Factor * error;
+  }
 
-	//Saturation Filter
-	if(output > MAX)
-	{
-		output = MAX;
-	}
-	else if(output < MIN)
-	{
-		output = MIN;
-	}
-        //Update error
-        pre_error = error;
+  // Calculate Iterm and limit integral runaway
+  temp = pid_st->sumError + error;
+  if(temp > pid_st->maxSumError){
+    i_term = MAX_I_TERM;
+    pid_st->sumError = pid_st->maxSumError;
+  }
+  else if(temp < -pid_st->maxSumError){
+    i_term = -MAX_I_TERM;
+    pid_st->sumError = -pid_st->maxSumError;
+  }
+  else{
+    pid_st->sumError = temp;
+    i_term = pid_st->I_Factor * pid_st->sumError;
+  }
 
- return output;
+  // Calculate Dterm
+  d_term = pid_st->D_Factor * (pid_st->lastProcessValue - processValue);
+
+  pid_st->lastProcessValue = processValue;
+
+  ret = (p_term + i_term + d_term) / SCALING_FACTOR;
+  if(ret > MAX_INT){
+    ret = MAX_INT;
+  }
+  else if(ret < -MAX_INT){
+    ret = -MAX_INT;
+  }
+
+  return((int16_t)ret);
 }
 
+/*! \brief Resets the integrator.
+ *
+ *  Calling this function will reset the integrator in the PID regulator.
+ */
+void pid_Reset_Integrator(pidData_t *pid_st)
+{
+  pid_st->sumError = 0;
+}

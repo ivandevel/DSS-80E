@@ -32,7 +32,7 @@ uint16_t GetAdcValue(ADC1_Channel_TypeDef channel)
 }
 
 //#define ARR_SIZE 
-#pragma optimize=none
+//#pragma optimize=none
 static int16_t Convert(int16_t adc_code, int16_t tcj) 
 {
 uint8_t x;
@@ -61,7 +61,7 @@ return 999;
 }
 
 //Calculate microvolts from OPAMP
-#pragma optimize=none
+//#pragma optimize=none
 static int32_t Code2uV(int16_t adccode)
 {
   //5350 - коэффициент усилителя 535.0
@@ -72,7 +72,7 @@ static int32_t Code2uV(int16_t adccode)
 
 
 //Calculate input voltage from OPAMP
-#pragma optimize=none
+//#pragma optimize=none
 static int32_t Code2Resistance(int16_t adccode)
 {
   float mvolt;
