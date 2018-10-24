@@ -97,7 +97,7 @@ void HotAir_Config(void)
 
 void TriacAngle_ISR (void) 
 {
-TIM2_SetCounter(2000 + Triac_angle);
+  TIM2_SetCounter(2000 + Triac_angle);
   //monitor the level value 
   if (Triac_angle == LOWER_LIMIT)
     TIM2_SetCompare1(0);
@@ -153,7 +153,7 @@ void HotAir_ISR (void)
         case PARAM_COOLDOWN:
         tSet = 0;
         Power = 0;
-        Triac_angle = Power*16;
+        Triac_angle = 0;
         if  (Temperature < 32)
         {
           //RegulMode = PARAM_STANDBY;
@@ -315,6 +315,11 @@ void HotAir_Main(void)
         break;
       case PARAM_FANSPEED:
         RegulMode = PARAM_COOLDOWN;
+        tSet = 0;
+        Power = 0;
+        Triac_angle = 0;
+        FAN_SET_PWM_DUTY(100);
+        pid_Reset_Integrator(&pidData);
         //FanSpeed = eeFanSpeed;
         //FAN_SET_PWM_DUTY(FanSpeed);
         break;
