@@ -78,6 +78,8 @@ void main(void)
   
   FLASH_Config();
   
+  EXTI_DeInit();
+  
 //You should add:
 // Define FLASH programming time 
 //FLASH_SetProgrammingTime(FLASH_PROGRAMTIME_STANDARD);
@@ -93,8 +95,8 @@ FLASH_Lock(FLASH_MEMTYPE_DATA);       // re-lock data memory
 }
   */
   
-//General purpose timer
-TIM4_Config(); 
+  //General purpose timer
+  TIM4_Config(); 
 
   #ifdef DFS_90
   HotAir_Config();
@@ -102,9 +104,7 @@ TIM4_Config();
   
   #ifndef DFS_90
   GPIO_Init(CONTROL_GPIO_PORT, CONTROL_GPIO_PIN, GPIO_MODE_OUT_PP_LOW_FAST);
-  #endif 
-
-  
+  #endif
   
   Temperature_ADC_Config();  
   

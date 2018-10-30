@@ -16,15 +16,13 @@
 #define K_D     2.00
 
 struct PID_DATA pidData;
-
 static __IO int16_t Triac_angle = 0;
-static uint32_t tempaccum;
-static uint16_t timedivider;
-static volatile uint16_t display_setpoint_timeout=DISPLAY_SETPOINT_TIMEOUT;
-static volatile uint16_t display_type_timeout=DISPLAY_SETPOINT_TIMEOUT;
+static uint32_t tempaccum = 0;
+static uint16_t timedivider = 0;
+static volatile uint16_t display_setpoint_timeout = DISPLAY_SETPOINT_TIMEOUT;
+static volatile uint16_t display_type_timeout = DISPLAY_SETPOINT_TIMEOUT;
 static uint16_t Temperature = 0;
 static uint16_t tSet = 0;
-extern uint16_t GetAdcValue(ADC1_Channel_TypeDef channel);
 static int16_t  Power = 0;
 static uint16_t Setpoint = 0;
 static uint8_t  RegulMode = 0;
@@ -38,9 +36,11 @@ void HotAir_Config(void)
   GPIO_Init(TRIAC_PORT, (GPIO_Pin_TypeDef)TRIAC_PIN, GPIO_MODE_OUT_PP_LOW_FAST);  
   GPIO_Init(ZERO_CROSS_PORT, ZERO_CROSS_PIN, GPIO_MODE_IN_PU_IT);
   
+  GPIO_Init(GPIOD, GPIO_PIN_5, GPIO_MODE_IN_PU_NO_IT);
+  
 /* Initialize ext. interrput pin for zero cross deccation  */
   EXTI_SetExtIntSensitivity(ZERO_EXTI_PORT, EXTI_SENSITIVITY_RISE_ONLY);
-  //  EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOC, EXTI_SENSITIVITY_FALL_ONLY);
+  //EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOC, EXTI_SENSITIVITY_FALL_ONLY);
   //EXTI_SetTLISensitivity(EXTI_TLISENSITIVITY_RISE_ONLY); 
   
 //---------------------------------------------------  

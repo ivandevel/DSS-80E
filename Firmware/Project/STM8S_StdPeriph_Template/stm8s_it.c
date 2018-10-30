@@ -26,7 +26,8 @@
 #include "main.h"    
 #include "7-seg.h" 
 #include "station.h" 
- #include "button.h"    
+#include "button.h"  
+#include "hotair.h"    
 /** @addtogroup Template_Project
   * @{
   */
@@ -123,7 +124,12 @@ INTERRUPT_HANDLER(EXTI_PORTA_IRQHandler, 3)
   */
 INTERRUPT_HANDLER(EXTI_PORTB_IRQHandler, 4)
 {
-
+  /* In order to detect unexpected events during development,
+     it is recommended to set a breakpoint on the following instruction.
+  */  
+#ifdef DFS_90
+  TriacAngle_ISR();
+#endif
 }
 
 /**
@@ -148,9 +154,9 @@ INTERRUPT_HANDLER(EXTI_PORTD_IRQHandler, 6)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-#ifdef DFS_90
-  TriacAngle_ISR();
-#endif
+//#ifdef DFS_90
+//  TriacAngle_ISR();
+//#endif
 }
 
 /**
