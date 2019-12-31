@@ -270,6 +270,7 @@
 #define DN_BUTTON_EXTI_PORT        EXTI_PORT_GPIOB
 
 //----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
 #elif DFS_90
     
 #define SEGMENT_POLARITY_LOW
@@ -337,9 +338,9 @@
 #define DN_BUTTON_EXTI_PORT           EXTI_PORT_GPIOD
 #define REED_EXTI_PORT                EXTI_PORT_GPIOD
 
-#define ZERO_EXTI_PORT                EXTI_PORT_GPIOB //EXTI_PORT_GPIOD
-#define ZERO_CROSS_PORT               GPIOB //GPIOD
-#define ZERO_CROSS_PIN                GPIO_PIN_4 //GPIO_PIN_5
+#define ZERO_EXTI_PORT                EXTI_PORT_GPIOA //EXTI_PORT_GPIOD 
+#define ZERO_CROSS_PORT               GPIOA //GPIOD
+#define ZERO_CROSS_PIN                GPIO_PIN_3 //GPIO_PIN_5
 
 #define TRIAC_PORT                    GPIOD
 #define TRIAC_PIN                     GPIO_PIN_4

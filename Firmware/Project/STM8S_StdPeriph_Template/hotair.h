@@ -34,4 +34,6 @@ void Soldering_ISR(void);
 void HotAir_ISR (void);
 void TriacAngle_ISR (void);
 void HotAir_Main(void);
+void tim2isr(void);
+
 #endif

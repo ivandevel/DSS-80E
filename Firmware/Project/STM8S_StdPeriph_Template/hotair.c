@@ -9,6 +9,15 @@
 #include "eeprom.h"
 #include "pid.h"
 
+#define b0 1
+#define b1 2
+#define b2 4
+#define b3 8
+#define b4 16
+#define b5 32
+#define b6 64
+#define b7 128
+
 #define K_P     2.00
 //! \xrefitem todo "Todo" "Todo list"
 #define K_I     2.00
@@ -30,37 +39,264 @@ static uint16_t FanSpeed = 100;
 static uint8_t  tempcount = 0;
 static uint16_t old_Temperature = 0;
 
+
+unsigned char openloop;
+unsigned char run;
+unsigned char runstate;
+unsigned char zcstate;
+unsigned char cyclecounter;
+unsigned char gstate;
+unsigned char gateon;
+unsigned char firstgate;
+unsigned char potvalue;
+unsigned char regulate;
+unsigned char hallstate;
+
+unsigned int halfperiod;
+unsigned int usablehalfperiod;
+unsigned int gatedelay;
+unsigned int zctime;
+unsigned int lineperiod;
+unsigned int gatetime;
+
+signed int propterm;
+signed int intterm;
+signed int speedest;
+signed int rpmcmd;
+signed int rpmref;
+signed int rpm;
+
+unsigned long int lineperiodsum;
+unsigned long int position;
+
+signed long int filter1int;
+signed long errorintegral;
+
+void initvars(void)
+{
+//PC_ODR &= ~(b6+b7);  // initialize gate low
+zctime=0;
+lineperiod=0;
+zcstate=0;
+cyclecounter=0;
+lineperiodsum= 0;
+halfperiod=0;
+gstate=100;
+gatedelay= 14000;
+gateon=0;
+firstgate=255;
+position=0;
+hallstate=0;
+//positionest.us32 = 0;
+speedest = 0;
+propterm=0;
+regulate=0;
+filter1int = 0;
+rpmcmd = 5000;
+rpmref=0;
+rpm = 0;
+errorintegral=0;
+}
+
+void tim2isr(void)
+{ 
+unsigned char status;
+unsigned int word0;
+unsigned char byte0;
+unsigned char byte1;
+unsigned long long0;
+
+status = TIM2->SR1;
+TIM2->SR1 = 0;
+
+
+if(status & b3) // if zero cross (channel 3 input capture)
+{
+
+switch(zcstate)
+{
+
+case 0: // wait 10 cycles for stability
+cyclecounter++;
+if(cyclecounter==30)
+{
+cyclecounter=0;
+zcstate=4;
+}
+break;
+
+
+case 4:
+byte1=TIM2->CCR3H;
+byte0=TIM2->CCR3L;
+zctime = (byte1<<8)+byte0;
+cyclecounter=0;
+lineperiodsum=0;
+zcstate=10;
+break;
+
+
+case 10:
+byte1=TIM2->CCR3H;
+byte0=TIM2->CCR3L;
+word0 = (byte1<<8)+byte0;
+lineperiod = word0 - zctime;
+zctime = word0;
+lineperiodsum = lineperiodsum + lineperiod;
+cyclecounter++;
+if(cyclecounter==16)
+{
+halfperiod = lineperiodsum>>5;
+long0 = halfperiod;
+long0 = long0 * 218;
+long0 = long0>>8;
+usablehalfperiod = long0; // usable range for gating is 85% of half period
+gatedelay= usablehalfperiod;
+zcstate=15;
+}
+break;
+
+
+case 15: 
+byte1=TIM2->CCR3H;
+byte0=TIM2->CCR3L;
+zctime = (byte1<<8)+byte0;
+gatetime = zctime + halfperiod - 500;
+TIM2->CCR1H = gatetime>>8;
+TIM2->CCR1L = gatetime;
+gstate=100;
+zcstate=20;
+break;
+
+
+
+case 20: 
+byte1=TIM2->CCR3H;
+byte0=TIM2->CCR3L;
+zctime = (byte1<<8)+byte0;
+gatetime = zctime + gatedelay; 
+TIM2->CCR1H = gatetime>>8;
+TIM2->CCR1L = gatetime;
+gstate=0;
+break;
+
+
+} // end of switch statement
+
+
+} // end of zero cross ISR
+
+
+if( (status & b1) && (zcstate > 10) ) // if gate fire ( channel 1 compare )
+{
+	
+switch(gstate)
+{
+case 0: // first gating pulse
+GPIO_WriteLow(TRIAC_PORT, TRIAC_PIN); // gate low
+gateon=255;
+gatetime = gatetime + 1000; // schedule turn off 
+TIM2->CCR1H = gatetime>>8;
+TIM2->CCR1L = gatetime;
+gstate=10; // first turn off
+regulate = 255;
+break;
+
+case 10: // first turn off
+GPIO_WriteHigh(TRIAC_PORT, TRIAC_PIN); // take gate high
+gatetime = zctime + halfperiod + gatedelay; // setup for second gate
+TIM2->CCR1H = gatetime>>8;
+TIM2->CCR1L = gatetime;
+gateon = 0; // stop toggling
+gstate=20;
+break;
+
+case 20: // second gate
+GPIO_WriteLow(TRIAC_PORT, TRIAC_PIN); // gate low
+gatetime = gatetime + 1000; // schedule turn off 
+TIM2->CCR1H = gatetime>>8;
+TIM2->CCR1L = gatetime;
+gstate=30; // second turn off
+gateon=255; // enable toggling
+regulate = 255;
+break;
+
+case 30: // second turn off
+GPIO_WriteHigh(TRIAC_PORT, TRIAC_PIN); // take gate high
+gateon=0; // stop toggling
+gstate=0; // setup for first gating
+break;
+
+
+case 100: // very first gating pulse (get output high safely)
+GPIO_WriteHigh(TRIAC_PORT, TRIAC_PIN);
+gateon=0;
+firstgate=0;
+//gatetime = gatetime + 1000; // schedule turn off 100uS before zc
+gatetime = gatetime + 100; // schedule turn off 100uS before zc
+TIM2->CCR1H = gatetime>>8;
+TIM2->CCR1L = gatetime;
+gstate=10; // first turn off
+break;
+
+	
+	
+} // end of switch statement	
+	
+}
+
+} // end of tim1isr function
+
 void HotAir_Config(void)
 {
   /* Initialize I/Os in Output Mode */
   GPIO_Init(TRIAC_PORT, (GPIO_Pin_TypeDef)TRIAC_PIN, GPIO_MODE_OUT_PP_LOW_FAST);  
-  GPIO_Init(ZERO_CROSS_PORT, ZERO_CROSS_PIN, GPIO_MODE_IN_PU_IT);
   
-  GPIO_Init(GPIOD, GPIO_PIN_5, GPIO_MODE_IN_PU_NO_IT);
+  //TIM2_CH3
+  GPIO_Init(ZERO_CROSS_PORT, ZERO_CROSS_PIN, GPIO_MODE_IN_PU_NO_IT);
   
-/* Initialize ext. interrput pin for zero cross deccation  */
-  EXTI_SetExtIntSensitivity(ZERO_EXTI_PORT, EXTI_SENSITIVITY_RISE_ONLY);
-  //EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOC, EXTI_SENSITIVITY_FALL_ONLY);
+  /* Initialize ext. interrput pin for zero cross deccation  */
+  //EXTI_SetExtIntSensitivity(ZERO_EXTI_PORT, EXTI_SENSITIVITY_RISE_ONLY);
   //EXTI_SetTLISensitivity(EXTI_TLISENSITIVITY_RISE_ONLY); 
   
-//---------------------------------------------------  
-  /* Configure TIMER2 for AC dimming */
-  TIM2_DeInit();
-  TIM2_TimeBaseInit(TIM2_PRESCALER_8, 20000);
-  TIM2_OC1Init(TIM2_OCMODE_PWM1,TIM2_OUTPUTSTATE_ENABLE,0,TIM2_OCPOLARITY_HIGH);
-  
-  /*        
-  TIM2_OC2Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 5, TIM2_OCPOLARITY_HIGH);
-  TIM2_OC2PreloadConfig(ENABLE);
-  */
-  
-  TIM2_ARRPreloadConfig(ENABLE);
-  
-  TIM2_Cmd(ENABLE);
-  //Delayms(1);
-  //Calc_AC_Freqency();
+////---------------------------------------------------  
+//  /* Configure TIMER2 for AC dimming */
+//  TIM2_DeInit();
+//  TIM2_TimeBaseInit(TIM2_PRESCALER_8, 20000);
+//  TIM2_OC1Init(TIM2_OCMODE_PWM1,TIM2_OUTPUTSTATE_ENABLE,0,TIM2_OCPOLARITY_HIGH);
+//  
+//  /*        
+//  TIM2_OC2Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 5, TIM2_OCPOLARITY_HIGH);
+//  TIM2_OC2PreloadConfig(ENABLE);
+//  */
+//  
+//  TIM2_ARRPreloadConfig(ENABLE);
+//  
+//  TIM2_Cmd(ENABLE);
+//  //Delayms(1);
+//  //Calc_AC_Freqency();
+////---------------------------------------------------
 
-//---------------------------------------------------  
+//New TIM2 Routine
+//---------------------------------------------------
+// configure tim1
+TIM2_DeInit();
+TIM2->CR1 = 1; // enable counter
+TIM2->PSCR = TIM2_PRESCALER_8; // divide by 8
+
+TIM2->CCMR3 = 0xF1; // enable input capture for channel 3
+
+TIM2->CCER2=1; // enable IC3
+
+TIM2->IER = b3 + b1;
+
+//TIM1_CCMR1 = 0x10; // enable output compare for channel 1
+TIM2->CCR1H = 0x80;
+TIM2->CCR1L = 0x00;
+ 
+TIM2_Cmd(ENABLE);
+//---------------------------------------------------
+  
  /* Time base configuration */      
    TIM1_TimeBaseInit(1, TIM1_COUNTERMODE_UP, 99, 0);
 
