@@ -187,7 +187,7 @@ void Soldering_ISR (void)
   
      if (tempcount == N_MEASUREMENTS_OF_TEMPERATURE) {
         
-     Temperature = Get_Temperature_Filtered(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE);//Kalman(Convert(tempaccum/N_MEASUREMENTS_OF_TEMPERATURE, 1)) + 20;   
+     Temperature = Get_Temperature_Filtered(adc_accum/N_MEASUREMENTS_OF_TEMPERATURE);//Kalman(Convert(adc_accum/N_MEASUREMENTS_OF_TEMPERATURE, 1)) + 20;   
 
       switch(StbyMode)
       {
@@ -208,7 +208,7 @@ void Soldering_ISR (void)
       if (Power <  0) 
         Power = 0;
       
-       tempaccum = 0;
+       adc_accum = 0;
        tempcount = 0;
 
        switch(StbyMode)

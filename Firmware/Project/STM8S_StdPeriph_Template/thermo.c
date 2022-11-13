@@ -13,7 +13,7 @@ void Temperature_ADC_Config (void)
   
   ADC1_Init(
     ADC1_CONVERSIONMODE_CONTINUOUS,
-    ADC1_CHANNEL_4,
+    ADC_SOLDER_TEMP_CHANNEL,
     ADC1_PRESSEL_FCPU_D4,
     ADC1_EXTTRIG_TIM, DISABLE,
     ADC1_ALIGN_RIGHT,
@@ -33,7 +33,7 @@ uint16_t GetAdcValue(ADC1_Channel_TypeDef channel)
 
 //#define ARR_SIZE 
 //#pragma optimize=none
-static int16_t Convert(int16_t adc_code, int16_t tcj) 
+/*static*/ int16_t Convert(int16_t adc_code, int16_t tcj) 
 {
 uint8_t x;
 uint16_t Vread;

@@ -2,7 +2,7 @@
 #define __EEPROM_H__
 #include "stm8s_eval.h"
 
-#define FANSPEED_MIN 25
+//#define FANSPEED_MIN 5
 
 uint16_t ee_Setpoint_Get(void);
 void ee_Setpoint_Set(uint16_t ee_setpoint);

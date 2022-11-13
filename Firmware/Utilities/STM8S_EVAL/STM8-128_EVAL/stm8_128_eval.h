@@ -351,6 +351,8 @@
 #define LEVEL_STEP                    1
 #define RAMP_STEP                     2
 
+#define FANSPEED_MIN 5
+
 #define FAN_SET_PWM_DUTY(X)           TIM1_SetCompare4(X)
 
 //----------------------------------------------------------------------------------
